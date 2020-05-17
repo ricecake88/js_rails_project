@@ -5,3 +5,9 @@ fetch(`${BACKEND_URL}/test`)
   .catch(error => {
       console.log(error)
   })
+
+
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM_fully loaded and parsed');
+    User.handle_login();
+  })
