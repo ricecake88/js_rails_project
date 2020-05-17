@@ -46,5 +46,16 @@ class User {
                 console.log(error);
             });            
         })
-    }    
+    }
+
+    static logged_in() {
+        if (this.login_state == true) {
+            console.log("User is logged in");
+            return true;
+        } else {
+            console.log("User is not logged in");
+            return false;
+        }
+    }
+    
 }
