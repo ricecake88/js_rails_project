@@ -57,5 +57,64 @@ class User {
             return false;
         }
     }
+
+    static monitor_signup_link(e) {
+        const signup_button = document.querySelector("button#signup_link");
+        signup_button.addEventListener("click", function(e) {
+            e.preventDefault(); 
+            document.getElementById('user').innerHTML = document.getElementById('signup').innerHTML;
+            User.hide_login();
+            const signup_form = document.getElementById('signup_form');
+            signup_form.addEventListener("submit", function(e) {
+                e.preventDefault();
+                // get info from form
+                const email = document.querySelector("#signup_form input#email").value;
+                console.log(email);
+                const first_name = document.querySelector("#signup_form input#first_name").value;
+                console.log(first_name);
+                const last_name = document.querySelector("#signup_form input#last_name").value;
+                console.log(last_name)
+                const password = document.querySelector("#signup_form input#password").value;
+                console.log(password)
+                const password_confirmation = document.querySelector("#signup_form input#password").value;
+                if (password !== password_confirmation) {
+                    console.log("Passwords do not match");
+                } else {
+                    console.log("They match!");
+                }
+                // add function to handle errors
+
+                let configObject = {
+                    method: 'post',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        'email': email,
+                        'first_name': first_name,
+                        'last_name': last_name,
+                        'password': password
+                    }),
+                };
+                fetch(`${BACKEND_URL}/signup`, configObject)
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status) {
+                        document.getElementById('user').innerHTML = json.first_name;
+                        this.first_name = json.first_name;
+                        this.last_name = json.last_name;
+                        this.email_address = json.email_address;
+                    } else {
+                        document.getElementById('user').innerHTML = json.message;
+                    }
+                })
+                .catch(function(error) {
+                    alert("Bad!");
+                    console.log(error.message);
+                })
+            })
+        })
+    }
     
 }
