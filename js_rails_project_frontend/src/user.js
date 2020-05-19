@@ -116,5 +116,9 @@ class User {
             })
         })
     }
-    
+
+    static hide_login() {
+        const login_form = document.getElementById('login');
+        login_form.setAttribute("class", "hidden");
+    }
 }
