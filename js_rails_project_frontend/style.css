@@ -1,6 +1,13 @@
-div#signup {
-    display: none;
+div.hidden {
+    display:none;
 }
 
-div#login {
+button#signup_link {
+    text-decoration:underline;
+    border: none;
+    cursor: pointer;
+    background:none;
+    padding: 0;
+    color: blue;
 }
+
