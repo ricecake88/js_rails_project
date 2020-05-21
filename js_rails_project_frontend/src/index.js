@@ -1,13 +1,11 @@
-const BACKEND_URL = 'https://localhost:3000';
+const BACKEND_URL = 'http://localhost:3000';
 fetch(`${BACKEND_URL}/test`)
   .then(response => response.json())
-  .then(parsedResponse => console.log(parsedResponse))
-  .catch(error => {
-      console.log(error)
-  })
+  .then(json => console.log(json));
 
 
-  window.addEventListener('DOMContentLoaded', (event) => {
-    console.log('DOM_fully loaded and parsed');
-    User.handle_login();
-  })
+window.addEventListener('DOMContentLoaded', (event) => {
+  console.log('DOM_fully loaded and parsed');
+  User.handle_login();
+  User.monitor_signup_link();
+})
