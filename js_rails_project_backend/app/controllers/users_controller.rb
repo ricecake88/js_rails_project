@@ -1,7 +1,7 @@
 class UsersController < ApplicationController
 
     def create
-        user = User.find_by(:email => params[:email_address])
+        user = User.find_by(:email => params[:email])
         if !user.present?
             user = User.new(user_params)
             if user.save
@@ -15,7 +15,7 @@ class UsersController < ApplicationController
 
     private
     def user_params
-        params.permit(:first_name, :last_name, :email_address, :password)
+        params.permit(:first_name, :last_name, :email, :password)
     end    
 
 end
