@@ -30,6 +30,7 @@ class User {
             };
             console.log(configObject);
             fetch(`${BACKEND_URL}/login`, configObject)
+            //.then(response => response.json(localStorage.setItem("loggedIn", true))            
             .then(response => response.json())
             .then(json => {
                 console.log(json);
@@ -39,7 +40,7 @@ class User {
                 textElement.textContent = "Login Failed";
                 userElement.appendChild(textElement);
               } else { //login passed
-                console.log("blah");
+               console.log("blah");
               }
             })
             .catch(function(error) {
@@ -101,7 +102,7 @@ class User {
                 .then(response => response.json())
                 .then(json => {
                     if (json.status) {
-                        document.getElementById('user').innerHTML = json.first_name;
+                        document.getElementById('user').innerHTML = "Welcome, " + json.first_name;
                         this.first_name = json.first_name;
                         this.last_name = json.last_name;
                         this.email_address = json.email_address;
