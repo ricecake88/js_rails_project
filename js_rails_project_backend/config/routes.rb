@@ -3,4 +3,5 @@ Rails.application.routes.draw do
   get '/test', to: 'application#test'
   post '/login', to: 'sessions#create'
   post '/signup', to: 'users#create'
+  delete '/logout', to: "sessions#destroy"
 end
