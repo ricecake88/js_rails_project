@@ -30,22 +30,25 @@ class User {
             };
             console.log(configObject);
             fetch(`${BACKEND_URL}/login`, configObject)
-            //.then(response => response.json(localStorage.setItem("loggedIn", true))            
+            //.then(response => response.json(localStorage.setItem("loggedIn", true))
             .then(response => response.json())
             .then(json => {
                 console.log(json);
-              if (!json['status']) {
                 const userElement = document.querySelector('#user');
                 const textElement = document.createElement('p');
+              if (!json['status']) {
                 textElement.textContent = "Login Failed";
                 userElement.appendChild(textElement);
               } else { //login passed
                console.log("blah");
+               textElement.textContent = "Welcome, " + json['first_name'];
+               userElement.appendChild(textElement);
+               login.setAttribute("class", "hidden");
               }
             })
             .catch(function(error) {
                 console.log(error);
-            });            
+            });
         })
     }
 
@@ -62,7 +65,7 @@ class User {
     static monitor_signup_link(e) {
         const signup_button = document.querySelector("button#signup_link");
         signup_button.addEventListener("click", function(e) {
-            e.preventDefault(); 
+            e.preventDefault();
             document.getElementById('user').innerHTML = document.getElementById('signup').innerHTML;
             User.hide_login();
             const signup_form = document.getElementById('signup_form');
@@ -105,7 +108,7 @@ class User {
                         document.getElementById('user').innerHTML = "Welcome, " + json.first_name;
                         this.first_name = json.first_name;
                         this.last_name = json.last_name;
-                        this.email_address = json.email_address;
+                        this.email_address = json.email;
                     } else {
                         document.getElementById('user').innerHTML = json.message;
                     }
