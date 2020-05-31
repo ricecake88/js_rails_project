@@ -1,12 +1,12 @@
 
 class User {
-    constructor(email, password, login_state="false") {
+    constructor(email="", password="", login_state=false) {
         this.email = email;
         this.password = password; //needs encryption
         this.login_state = login_state;
     }
 
-    static handle_login() {
+    function handle_login() {
         const login = document.getElementById('login');
         login.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -40,10 +40,10 @@ class User {
                 textElement.textContent = "Login Failed";
                 userElement.appendChild(textElement);
               } else { //login passed
-               console.log("blah");
                textElement.textContent = "Welcome, " + json['first_name'];
                userElement.appendChild(textElement);
                login.setAttribute("class", "hidden");
+               this.login_state = true;
               }
             })
             .catch(function(error) {
@@ -52,7 +52,7 @@ class User {
         })
     }
 
-    static logged_in() {
+    function logged_in() {
         if (this.login_state == true) {
             console.log("User is logged in");
             return true;
@@ -121,7 +121,7 @@ class User {
         })
     }
 
-    static hide_login() {
+    function hide_login() {
         const login_form = document.getElementById('login');
         login_form.setAttribute("class", "hidden");
     }
