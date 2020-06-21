@@ -8,16 +8,20 @@ class Habit {
     }
 
     static add_habit_form() {
-        const bodyElement = document.querySelectorTag("body");
+        const bodyElement = document.querySelector("body");
 
         const habitForm = document.createElement("form")
 
         const labelForHabitNameElement = document.createElement("label");
-        labelForHabitNameElement = document.setAttribute("for", "habitName");
+        labelForHabitNameElement.setAttribute("for", "habitName");
+        labelForHabitNameElement.textContent = "Habit Name: ";
 
         const inputHabitNameElement = document.createElement("input")
         inputHabitNameElement.setAttribute("id", "habitName");
         inputHabitNameElement.setAttribute("name", "habitName");
+
+        const submitElement = document.createElement("submit");
+
 
         habitForm.appendChild(labelForHabitNameElement);
         habitForm.appendChild(inputHabitNameElement);
