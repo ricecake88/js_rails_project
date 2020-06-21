@@ -2,6 +2,10 @@ div.hidden {
     display:none;
 }
 
+div.show {
+    display:block;
+}
+
 button#signup_link {
     text-decoration:underline;
     border: none;
