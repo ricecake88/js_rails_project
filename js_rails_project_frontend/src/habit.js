@@ -49,7 +49,7 @@ class Habit {
         habitForm.appendChild(labelForScheduleElement);
         habitForm.appendChild(scheduleElement);
         habitForm.appendChild(submitElement);
-      
+
         bodyElement.appendChild(habitForm);
         console.log(habitForm);
     }
