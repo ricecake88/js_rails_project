@@ -1,20 +1,40 @@
 
 class User {
-    constructor(email="", password="", login_state=false) {
+    constructor(firstName="", email="", password="", login_state=false) {
         this.email = email;
-        this.password = password; //needs encryption
-        this.login_state = login_state;
+        this.firstName = firstName;
+        this.password = password; //needs encryption - do I need this ?
+        this.loggedIn = login_state;
     }
 
     /* getter for login_state */
-    get login_state() {
+    get loggedIn() {
         return this._login_state;
-
     }
 
     /* setter for login_state */
-    set login_state(state) {
+    set loggedIn(state) {
         this._login_state = state;
+    }
+
+    /* getter for email */
+    get email() {
+        return this._email;
+    }
+
+    /* setter for email */
+    set email(email) {
+        this._email = email;
+    }
+
+    /* getter for firstName */
+    get firstName() {
+        return this._firstName;
+    }
+
+    /* setter for lastName */
+    set firstName(name) {
+        this._firstName = name;
     }
 
     fetch_json(action_path, configObject) {
