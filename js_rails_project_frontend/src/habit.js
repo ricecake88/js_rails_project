@@ -12,6 +12,7 @@ class Habit {
         const bodyElement = document.querySelector("body");
 
         const habitForm = document.createElement("form")
+        habitForm.setAttribute("id", "habitForm");
 
         const labelForHabitNameElement = document.createElement("label");
         labelForHabitNameElement.setAttribute("for", "habitName");
@@ -21,6 +22,8 @@ class Habit {
         inputHabitNameElement.setAttribute("id", "habitName");
         inputHabitNameElement.setAttribute("name", "habitName");
         inputHabitNameElement.setAttribute("type", "text");
+
+        const brElementOne = document.createElement("br")
 
         const labelForScheduleElement = document.createElement("label");
         labelForScheduleElement.setAttribute("for", "frequency");
@@ -38,16 +41,20 @@ class Habit {
         scheduleElement.appendChild(optionOne);
         scheduleElement.appendChild(optionTwo);
 
+        const brElementTwo = document.createElement("br")
 
-        const submitElement = document.createElement("submit");
+        const submitElement = document.createElement("input");
         submitElement.setAttribute("name", "submitHabit");
         submitElement.setAttribute("id", "submitHabit");
+        submitElement.setAttribute("type", "submit");
 
 
         habitForm.appendChild(labelForHabitNameElement);
         habitForm.appendChild(inputHabitNameElement);
+        habitForm.appendChild(brElementOne)
         habitForm.appendChild(labelForScheduleElement);
         habitForm.appendChild(scheduleElement);
+        habitForm.appendChild(brElementTwo)
         habitForm.appendChild(submitElement);
 
         bodyElement.appendChild(habitForm);
