@@ -6,7 +6,7 @@ div.show {
     display:block;
 }
 
-button#signup_link {
+button#signupLink {
     text-decoration:underline;
     border: none;
     cursor: pointer;
