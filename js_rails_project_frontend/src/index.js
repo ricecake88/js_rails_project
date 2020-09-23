@@ -3,91 +3,84 @@ fetch(`${BACKEND_URL}/test`)
   .then(response => response.json())
   .then(json => console.log(json));
 
+function fetchJSON(action_path, configObject) {
+    return fetch(action_path, configObject)
+    .then(response => response.json())
+    .then(json => json)
+    .catch(function(error) {
+      let messageElement = document.querySelector("message");
+      messageElement.innerText = "ERROR";
+    })
+  }
 
-function loginEvent(loginElement, user) {
+function monitorUserArea(user) {
+    const userAreaElement = document.getElementById("user");
 
-    /* new user is not logged in; monitor to see if */
-    /* user has pressed submit on login form */
-    loginElement.addEventListener('submit', function(e) {
-      e.preventDefault();
+    userAreaElement.addEventListener("submit", function(e) {
+        e.preventDefault();
+        let config;
+        console.log("Submitted!");
+        console.log(this);
+        formElement = this.querySelectorAll("form")[0];
+        const formName = formElement.getAttribute("name");
+        console.log(formName);
+        switch(formName) {
+            case "loginForm":
+                console.log("In Login Form");
+                config = User.createLoginConfig();
+                console.log(config);
+                fetchJSON(`${BACKEND_URL}/login`, config)
+                .then(json => {
+                    console.log("retrieved login config");
+                    user.handleLoginConfig(json);
+                });
+                break;
+            case "signupForm":
+                console.log("In Signup Form");
+                config = User.createSignupConfig();
+                fetchJSON(`${BACKEND_URL}/signup`, config)
+                .then(json => {
+                    console.log("retrieved signup config");
+                    User.handleSignupConfig(json);
+                });
+                break;
+            case "habitForm":
+                console.log("In Habit Form");
+                console.log(user);
+                config = Habit.createHabitConfig(user);
+                console.log(config);
+                fetchJSON(`${BACKEND_URL}/habit`, config)
+                .then(json => {
+                    console.log(json);
+                    console.log("retrieved habit config");
+                    Habit.handleHabitConfig(json);
+                })
+                .catch(function(error) {
+                    let messageElement = document.getElementById("message");
+                    console.log(messageElement);
+                    messageElement.innerText = error;
+                });
+                break;
+            default:
 
-      /* create configuration object to pass in to
-      /* login URL action */
-      const login_info = user.createLoginConfigObject();
-      user.fetch_json(`${BACKEND_URL}/login`, login_info)
-      .then(login_info => {
-        user.handle_login_info(login_info);
-        user.loggedIn = login_info['status'];
-        user.firstName = login_info['first_name'];
-        user.email = login_info['email'];
-        if (user.loggedIn) {
-          Habit.add_habit_form();
         }
-      })
-      .catch(err => console.log(err))
-    });
-}
-function signupEvent(signupElement, user) {
 
-  signupElement.addEventListener("click", function(e) {
-    e.preventDefault();
-
-    document.getElementById('user').innerHTML = document.getElementById('signup').innerHTML;
-    const signup_form = document.getElementById('signup_form');
-
-    /* user has clicked the signup_button */
-    /* hide login_form */
-    user.hide_login();
-
-    signup_form.addEventListener("submit", function(e){
-      e.preventDefault();
-      const signup_info = user.createSignupConfigObj();
-      user.fetch_json(`${BACKEND_URL}/signup`, signup_info)
-      .then(signup_info => {
-        console.log(signup_info);
-        user.handleSignupInfo(signup_info);
-        user.loggedIn = signup_info['status'];
-        user.firstName = signup_info['first_name'];
-        user.email = signup_info['email'];
-        if (user.loggedIn) {
-          Habit.add_habit_form();
-        }
-      })
-      .catch(err => console.log(err))
-    });
-  })
-}
-
-function addHabitEvent(addHabitElement, user) {
-  console.log("Monitoring submit");
-  if (!Object.is(addHabitElement, null)) {
-    console.log(addHabitElement);
-  addHabitElement.addEventListener("submit", function(e) {
-    e.preventDefault();
-    let habit = new Habit();
-    const newHabitInfo = habit.createHabitConfigObj();
-    habit.fetch_json(`${BACKEND_URL}/habit`, newHabitInfo)
-  })}
+    })
 
 }
 
-window.addEventListener('DOMContentLoaded', (event) => {
+function monitorSignupLink() {
+    const signupBtn = document.querySelector("button#signupLink");
+    signupBtn.addEventListener("click", function(e) {
+        User.renderSignupForm();
+    })
+}
 
-  /* check if DOM is loaded */
-  console.log('DOM_fully loaded and parsed');
+document.addEventListener('DOMContentLoaded', (event) => {
 
-  /* retrieve login HTML form */
-  const login = document.getElementById('login');
-
-  /* wait until someone has tried to sign up for an account */
-  const signupBtn = document.querySelector("button#signup_link");
-
-  const submitNewHabit = document.querySelector("button#submitHabit");
-
-  let new_user = new User();
-
-  loginEvent(login, new_user);
-  signupEvent(signupBtn, new_user);
-  addHabitEvent(submitNewHabit, new_user);
+    let user = new User();
+    User.renderLogin();
+    monitorUserArea(user);
+    monitorSignupLink();
 
 })
