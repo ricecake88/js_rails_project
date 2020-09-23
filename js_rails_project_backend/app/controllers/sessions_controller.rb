@@ -15,7 +15,8 @@ class SessionsController < ApplicationController
     end
 
     def destroy
-      session.delete(:user_id)
+      #session.delete(:user_id)
+      @current_user = session[:user_id] = null
       render json: {status: true}
     end
 
