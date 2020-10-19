@@ -5,4 +5,5 @@ Rails.application.routes.draw do
   post '/signup', to: 'users#create'
   delete '/logout', to: 'sessions#destroy'
   post '/habit', to: 'habits#create'
+  get '/habits', to: 'habits#index'
 end
