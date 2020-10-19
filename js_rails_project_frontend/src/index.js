@@ -33,6 +33,8 @@ function monitorUserArea(user) {
                 .then(json => {
                     console.log("retrieved login config");
                     user.handleLoginConfig(json);
+                    monitorHabits();
+                    Habit.renderAddHabitForm();
                 });
                 break;
             case "signupForm":
@@ -72,7 +74,21 @@ function monitorUserArea(user) {
 function monitorSignupLink() {
     const signupBtn = document.querySelector("button#signupLink");
     signupBtn.addEventListener("click", function(e) {
-        User.renderSignupForm();
+        fetchJSON(`${BACKEND_URL}/habits`, config)
+        .then(json => {
+            console.log("retrieved login config");
+            console.log("print");
+        });
+    })
+}
+
+function monitorHabits() {
+    alert("monitorHabits");
+    console.log("monitorHabits");
+    fetchJSON(`${BACKEND_URL}/habits`)
+    .then(json => {
+        console.log(json);
+        Habit.renderHabits(json)
     })
 }
 
@@ -82,5 +98,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     User.renderLogin();
     monitorUserArea(user);
     monitorSignupLink();
+    monitorHabits();
 
 })
