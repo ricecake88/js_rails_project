@@ -1,11 +1,21 @@
 class HabitsController < ApplicationController
 
+    def index
+        if current_user.nil? || !current_user.present?
+            render json: {status: false, habits: 'Current User Session Does Not Exist'}
+        else
+            #habits = Habit.find_by(:user_id => current_user.id)
+            habits = Habit.all
+            render json: {status: true, habits: habits}
+        end
+    end
+
     def create
         user = User.find_by(:email => params[:email])
         if user.present?
             habit = Habit.find_by(:name => params[:name], :user => user.id)
             if (habit.present?)
-                render json: {status: true, message: "Habit already exists."}
+                render json: {status: false, message: "Habit already exists."}
             else
                 habit = Habit.new(habit_params)
                 habit.user = user
@@ -16,7 +26,7 @@ class HabitsController < ApplicationController
                 end
             end
         else
-            render json: {status: false, message: "Test"}
+            render json: {status: false, message: "User could not be found"}
         end
     end
 
