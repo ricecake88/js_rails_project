@@ -87,11 +87,6 @@ class Habit {
 
     }
 
-    display_form() {
-        const habitElement = document.querySelector("div#habit")
-        habitElement.setAttribute("class", "show")
-    }
-
     static renderAddHabitForm() {
         console.log("In add_habit_form");
         const userAreaElement = document.getElementById("user");
@@ -128,7 +123,7 @@ class Habit {
         scheduleElement.appendChild(optionOne);
         scheduleElement.appendChild(optionTwo);
 
-        const brElementTwo = document.createElement("br")
+        const brElementTwo = document.createElement("br");
 
         const submitElement = document.createElement("button");
         submitElement.setAttribute("name", "submit");
@@ -146,14 +141,25 @@ class Habit {
         habitForm.appendChild(submitElement);
 
         userAreaElement.appendChild(habitForm);
+        console.log(habitForm);
+    }
+
+    static handleHabitConfig(json) {
+        console.log("handleHabitConfig");
+        console.log(json['status'])
+        if (json['status'] === true) {
+            document.getElementById('habits').innerHTML =  json['name'];
+            console.log(json);
+        } else {
+            document.getElementById('error').innerHTML = json['message'];
+            document.getElementById('message').innerHTML = '';
+        }
     }
 
     static createHabitConfig(user) {
-
-        // get info from form
         const habitName = document.querySelector("#habitForm input#habitName").value;
         const frequency = document.querySelector("#habitForm select#frequency").value;
-        console.log(user);
+        console.log(user)
 
         // create configObject from form input
         let configObject = {
@@ -163,25 +169,29 @@ class Habit {
                 "Accept": "application/json"
             },
             body: JSON.stringify({
-                    'name': habitName,
-                    'frequency_mode': frequency,
-                    'email': user.email_address
+                'name': habitName,
+                'frequency_mode': frequency,
+                'email': user.email
             })
         };
 
         return configObject;
-
     }
 
-    static handleHabitConfig(json) {
-        console.log("handleHabitConfig");
-        console.log(json['status'])
-        if (json['status'] === true) {
-            document.getElementById('user').innerHTML = "Yay Habit!";
-            console.log(json);
+    static renderHabits(json) {
+        alert("renderHabits");
+        console.log("renderHabits");
+        console.log(json);
+        const habits = document.querySelector("div#habits");
+        const message = document.querySelector("div#message");
+        if (json['status']) {
+            //habits.innerText = json['habits'];
+            habits.innerText = json['habits'];
         } else {
-            document.getElementById('habits').innerHTML = json['message'];
+            if (json['message']) {
+                message.innerText = json['message'];
+                document.querySelector("div#error") = '';
+            }
         }
     }
-
 }
