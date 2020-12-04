@@ -1,12 +1,12 @@
 class HabitsController < ApplicationController
 
+    before_action :authenticate_request!
+
     def index
-        if current_user.nil? || !current_user.present?
-            render json: {status: false, habits: 'Current User Session Does Not Exist'}
+        if logged_in?
+            render json: {status: true, message: @current_user}
         else
-            #habits = Habit.find_by(:user_id => current_user.id)
-            habits = Habit.all
-            render json: {status: true, habits: habits}
+            render json: {status: false, message: "BOOOOO"}
         end
     end
 
@@ -32,7 +32,6 @@ class HabitsController < ApplicationController
 
     private
     def habit_params
-        #params.require(:habit).permit(:name, :frequency_mode)
         params.permit(:name, :frequency_mode)
     end
 end
