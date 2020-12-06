@@ -179,12 +179,11 @@ class Habit {
     }
 
     static renderHabits(json) {
-        alert("renderHabits");
         console.log("renderHabits");
         console.log(json);
         const habits = document.querySelector("div#habits");
         const message = document.querySelector("div#message");
-        if (json['status']) {
+        if (json['status'] == true) {
             //habits.innerText = json['habits'];
             habits.innerText = json['habits'];
         } else {
