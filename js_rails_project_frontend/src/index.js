@@ -8,17 +8,17 @@ function fetchJSON(action_path, configObject) {
     .then(response => response.json())
     .then(json => json)
     .catch(function(error) {
-      let messageElement = document.querySelector("message");
+      let messageElement = document.getElementById("message");
       messageElement.innerText = "ERROR";
     })
   }
 
 function monitorUserArea(user) {
     const userAreaElement = document.getElementById("user");
-
     userAreaElement.addEventListener("submit", function(e) {
         e.preventDefault();
         let config;
+        let authConfig;
         console.log("Submitted!");
         console.log(this);
         formElement = this.querySelectorAll("form")[0];
@@ -29,21 +29,34 @@ function monitorUserArea(user) {
                 console.log("In Login Form");
                 config = User.createLoginConfig();
                 console.log(config);
-                fetchJSON(`${BACKEND_URL}/login`, config)
+                fetchJSON(`${BACKEND_URL}/auth_user`, config)
                 .then(json => {
-                    console.log("retrieved login config");
-                    user.handleLoginConfig(json);
-                    monitorHabits();
-                    Habit.renderAddHabitForm();
+                    authConfig = User.createAuthConfig(json['auth_token'])
+                    console.log(json)
+                    console.log("Auth Config:")
+                    console.log(authConfig);
+                    if (json['status'] == "authorized") {
+                        console.log("authorized")
+                        fetchJSON(`${BACKEND_URL}/login`, authConfig)
+                        .then(json => {
+                            console.log(json)
+                            User.handleLoginConfig(json);
+                        })
+                    }
+
                 });
                 break;
             case "signupForm":
                 console.log("In Signup Form");
                 config = User.createSignupConfig();
+                console.log(config);
                 fetchJSON(`${BACKEND_URL}/signup`, config)
                 .then(json => {
                     console.log("retrieved signup config");
                     User.handleSignupConfig(json);
+                    if (json['status'] == true) {
+                        Habit.renderHabits(json);
+                    }
                 });
                 break;
             case "habitForm":
@@ -74,18 +87,13 @@ function monitorUserArea(user) {
 function monitorSignupLink() {
     const signupBtn = document.querySelector("button#signupLink");
     signupBtn.addEventListener("click", function(e) {
-        fetchJSON(`${BACKEND_URL}/habits`, config)
-        .then(json => {
-            console.log("retrieved login config");
-            console.log("print");
-        });
+        User.renderSignupForm();
     })
 }
 
 function monitorHabits() {
-    alert("monitorHabits");
-    console.log("monitorHabits");
-    fetchJSON(`${BACKEND_URL}/habits`)
+    console.log("in monitor Habits")
+    fetchJSON(`${BACKEND_URL}/login`)
     .then(json => {
         console.log(json);
         Habit.renderHabits(json)
