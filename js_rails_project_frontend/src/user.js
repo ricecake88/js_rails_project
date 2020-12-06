@@ -44,6 +44,7 @@ class User {
     }
 
     static renderLogin() {
+        console.log("renderLogin")
         const userAreaElement = document.getElementById("user");
         userAreaElement.innerHTML = "";
 
@@ -232,10 +233,11 @@ class User {
     }
 
     /* handles return json from login state */
-    handleLoginConfig(json) {
+    static handleLoginConfig(json) {
         const userElement = document.querySelector('#user');
         const messageElement = document.querySelector("#message");
         const textElement = document.createElement('p');
+        console.log(json);
         /* if login was successful, it welcomes the user
          * and hides the login form,  otherwise
          * it says that login is failed */
@@ -251,49 +253,60 @@ class User {
         }
     }
 
-static createSignupConfig() {
+    static createSignupConfig() {
 
-    // get info from form
-    const email = document.querySelector("#signupForm input#email").value;
-    const firstName = document.querySelector("#signupForm input#firstName").value;
-    const lastName = document.querySelector("#signupForm input#lastName").value;
-    const password = document.querySelector("#signupForm input#password").value;
-    const password_confirmation = document.querySelector("#signupForm input#password").value;
+        // get info from form
+        const email = document.querySelector("#signupForm input#email").value;
+        const firstName = document.querySelector("#signupForm input#firstName").value;
+        const lastName = document.querySelector("#signupForm input#lastName").value;
+        const password = document.querySelector("#signupForm input#password").value;
+        const password_confirmation = document.querySelector("#signupForm input#password").value;
 
-    if (password !== password_confirmation) {
-        console.log("Passwords do not match");
-    } else {
-        console.log("They match!");
+        if (password !== password_confirmation) {
+            console.log("Passwords do not match");
+        } else {
+            console.log("They match!");
+        }
+
+        // create configObject from form input
+        let configObject = {
+            method: 'post',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                'email': email,
+                'first_name': firstName,
+                'last_name': lastName,
+                'password': password
+            }),
+        };
+
+        return configObject;
     }
 
-    // create configObject from form input
-    let configObject = {
-        method: 'post',
-        headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        },
-        body: JSON.stringify({
-            'email': email,
-            'first_name': firstName,
-            'last_name': lastName,
-            'password': password
-        }),
-    };
-
-    return configObject;
-}
-
-    handleSignupConfig(json) {
+    static handleSignupConfig(json) {
 
         if (json['status']) {
             document.getElementById('message').innerHTML = "Welcome, " + json.first_name;
             this.first_name = json.first_name;
             this.last_name = json.last_name;
             this.email_address = json.email;
+            document.getElementById('user').innerHTML = "";
         } else {
             document.getElementById('message').innerHTML = json.message;
         }
     }
 
+    static createAuthConfig(auth_token) {
+        let configObject = {
+            method: 'GET',
+            headers: {
+                "Authorization": "Bearer " + auth_token
+            },
+        };
+
+        return configObject;
+    }
 }
