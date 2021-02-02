@@ -1,37 +1,42 @@
 class HabitsController < ApplicationController
 
+    #before_action :authenticate_request!, only: [:index]
     before_action :authenticate_request!
 
     def index
         if logged_in?
-            render json: {status: true, message: @current_user}
+            habits = Habit.where(:user_id => @current_user.id)
+            if !habits.present?
+                render json: {status: true, first_name: @current_user.first_name, last_name: @current_user.last_name, email: @current_user.email, password: @current_user.encrypted_password, id: @current_user.id, habits:''};
+            else
+                render json: {status: true, first_name: @current_user.first_name, last_name: @current_user.last_name, email: @current_user.email, password: @current_user.encrypted_password, id: @current_user.id, habits: habits}
+            end
         else
-            render json: {status: false, message: "BOOOOO"}
+            render json: {status: false}
         end
     end
 
     def create
-        user = User.find_by(:email => params[:email])
-        if user.present?
-            habit = Habit.find_by(:name => params[:name], :user => user.id)
-            if (habit.present?)
-                render json: {status: false, message: "Habit already exists."}
-            else
+        if logged_in?
+            Rails.logger.info("PARAMS: #{params.inspect}")
+            habit = Habit.find_by(:name => params[:name], :user_id => @current_user.id)
+            if !habit.present?
                 habit = Habit.new(habit_params)
-                habit.user = user
                 if habit.save!
-                    render json: {status: true, name: params[:name], frequency_mode: params[:frequency_mode]}
-                else
-                    render json: {status: false, message: "Habit could not be saved " + (params[:frequency_mode]).to_str}
+                    habit.user = @current_user
+                    render json: {status: true, message: "habit saved"}
                 end
+
+            else
+                render json: {status: false, message: "habit exists"}
             end
         else
-            render json: {status: false, message: "User could not be found"}
+            render json: {status: false, message: "Not Logged In"}
         end
     end
 
     private
     def habit_params
-        params.permit(:name, :frequency_mode)
+        params.require(:habit).permit(:name, :frequency_mode, :user_id)
     end
 end
