@@ -1,10 +1,12 @@
 
 class User {
-    constructor(firstName="", email="", password="", login_state=false) {
-        this.email = email;
-        this.firstName = firstName;
-        this.password = password; //needs encryption - do I need this ?
-        this.loggedIn = login_state;
+    constructor(firstName="", email="", password="", authToken="", login_state=false) {
+        this._email = email;
+        this._firstName = firstName;
+        this._password = password; //needs encryption - do I need this ?
+        this._loggedIn = login_state;
+        this._authToken = authToken;
+        this._id = -1;
     }
 
     /* getter for login_state */
@@ -35,6 +37,14 @@ class User {
     /* setter for lastName */
     set firstName(name) {
         this._firstName = name;
+    }
+
+    get authToken() {
+        return this._authToken;
+    }
+
+    get id() {
+        return this._id;
     }
 
     fetch_json(action_path, configObject) {
@@ -115,6 +125,9 @@ class User {
 
         const userAreaElement = document.getElementById("user");
         userAreaElement.innerHTML = "";
+
+        const messageElement = document.getElementById("message");
+        messageElement.innerHTML = "";
 
         const signupDiv = document.createElement("div");
         signupDiv.setAttribute("id", "signup");
@@ -213,11 +226,14 @@ class User {
         userAreaElement.appendChild(signupFormElement);
     }
 
-    static createLoginConfig() {
-        alert("Button pressed!");
+    createLoginConfig() {
+        //alert("Button pressed!");
         let login_ok = false;
         let email = document.querySelector("#loginSubmitForm input#email").value;
         let password = document.querySelector("#loginSubmitForm input#password").value
+
+        //check validity of email
+
         let configObject = {
             method: 'post',
             headers: {
@@ -229,27 +245,32 @@ class User {
                 'password': password
             })
         };
+        this._password = password;
         return configObject;
     }
 
     /* handles return json from login state */
-    static handleLoginConfig(json) {
-        const userElement = document.querySelector('#user');
-        const messageElement = document.querySelector("#message");
-        const textElement = document.createElement('p');
-        console.log(json);
-        /* if login was successful, it welcomes the user
-         * and hides the login form,  otherwise
-         * it says that login is failed */
-        if (!json['status']) {
-            textElement.textContent = "Login Failed";
-            userElement.appendChild(textElement);
-        } else { //login passed
-            messageElement.textContent = "Welcome, " + json['first_name'];
-            this.first_name = json.first_name;
-            this.last_name = json.last_name;
-            this.email_address = json.email;
-            Habit.renderAddHabitForm();
+   handleLoginConfig(json) {
+       console.log(">>>> handleLoginConfig(json)")
+       const userElement = document.querySelector('#user');
+       const messageElement = document.querySelector("#message");
+       const textElement = document.createElement('p');
+
+       /* if login was successful, it welcomes the user
+        * and hides the login form,  otherwise
+        * it says that login is failed */
+       if (!json['status']) {
+           messageElement.textContent = json['errors'];
+           this._password = '';
+       } else { //login passed
+           console.log(json);
+           messageElement.textContent = "Welcome, " + json.first_name;
+           this._firstName = json.first_name;
+           this._lastName = json.last_name;
+           this._email = json.email;
+           this._loggedIn = true;
+           this._id = json.id;
+           //Habit.renderAddHabitForm();
         }
     }
 
@@ -260,53 +281,61 @@ class User {
         const firstName = document.querySelector("#signupForm input#firstName").value;
         const lastName = document.querySelector("#signupForm input#lastName").value;
         const password = document.querySelector("#signupForm input#password").value;
-        const password_confirmation = document.querySelector("#signupForm input#password").value;
+        const password_confirmation = document.querySelector("#signupForm input#passwordConfirmation").value;
 
         if (password !== password_confirmation) {
             console.log("Passwords do not match");
         } else {
             console.log("They match!");
+            this._password = password;
+            // create configObject from form input
+            let configObject = {
+                method: 'post',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    'email': email,
+                    'first_name': firstName,
+                    'last_name': lastName,
+                    'password': password,
+                    'password_confirmation': password_confirmation
+                }),
+            };
+
+            return configObject;
         }
 
-        // create configObject from form input
-        let configObject = {
-            method: 'post',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify({
-                'email': email,
-                'first_name': firstName,
-                'last_name': lastName,
-                'password': password
-            }),
-        };
 
-        return configObject;
     }
 
     static handleSignupConfig(json) {
-
+        console.log(">>>>> handleSignupConfig()")
         if (json['status']) {
-            document.getElementById('message').innerHTML = "Welcome, " + json.first_name;
-            this.first_name = json.first_name;
-            this.last_name = json.last_name;
-            this.email_address = json.email;
+            document.getElementById('message').innerHTML = "Account Created. Please Log In."
+            this._first_name = json.first_name;
+            this._last_name = json.last_name;
+            this._email_address = json.email;
+            this._loggedIn = true;
+            this._id = json.id;
             document.getElementById('user').innerHTML = "";
         } else {
             document.getElementById('message').innerHTML = json.message;
+            this._password = '';
         }
     }
 
-    static createAuthConfig(auth_token) {
+    createAuthConfig(authToken) {
         let configObject = {
             method: 'GET',
             headers: {
-                "Authorization": "Bearer " + auth_token
+                "Authorization": "Bearer " + authToken
             },
         };
 
+        this._authToken = authToken;
         return configObject;
     }
+
 }
