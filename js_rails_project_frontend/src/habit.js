@@ -61,32 +61,6 @@ class Habit {
 
     }
 
-    createHabitConfigObj() {
-        //this.hide_login();
-
-        // get info from form
-        const habitName = document.querySelector("#habitForm input#habitName").value;
-        const frequency = document.querySelector("#habitForm select#frequency").value;
-
-        // create configObject from form input
-        let configObject = {
-            method: 'post',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify({
-                'name': habitName,
-                'frequency': frequency,
-            }),
-        };
-
-        console.log("Printing Config")
-        console.log(configObject);
-        return configObject;
-
-    }
-
     static renderAddHabitForm() {
         console.log("In add_habit_form");
         const userAreaElement = document.getElementById("user");
@@ -146,11 +120,11 @@ class Habit {
 
     static handleHabitConfig(json) {
         console.log("handleHabitConfig");
-        console.log(json['status'])
         if (json['status'] === true) {
             document.getElementById('habits').innerHTML =  json['name'];
             console.log(json);
         } else {
+            console.log(json);
             document.getElementById('error').innerHTML = json['message'];
             document.getElementById('message').innerHTML = '';
         }
@@ -159,33 +133,72 @@ class Habit {
     static createHabitConfig(user) {
         const habitName = document.querySelector("#habitForm input#habitName").value;
         const frequency = document.querySelector("#habitForm select#frequency").value;
-        console.log(user)
 
+        console.log(">>>> createHabitConfig");
         // create configObject from form input
         let configObject = {
             method: 'post',
             headers: {
                 "Content-Type": "application/json",
-                "Accept": "application/json"
+                "Accept": "application/json",
+                "Authorization": "Bearer " + user.authToken
             },
             body: JSON.stringify({
                 'name': habitName,
                 'frequency_mode': frequency,
-                'email': user.email
+                'user_id': user.id
             })
         };
-
         return configObject;
     }
 
     static renderHabits(json) {
-        console.log("renderHabits");
-        console.log(json);
+        console.log(">>>>>renderHabits");
+        console.log(json['habits']);
         const habits = document.querySelector("div#habits");
         const message = document.querySelector("div#message");
         if (json['status'] == true) {
-            //habits.innerText = json['habits'];
-            habits.innerText = json['habits'];
+
+            // habit display container
+            const habitGrid = document.createElement("div");
+            habitGrid.setAttribute("class", "habit-grid-container");
+
+            // habit table row
+            const habitGridRow = document.createElement("div");
+            habitGridRow.setAttribute("class", "habit-row");
+
+            const habitGridHeadName = document.createElement("div");
+            habitGridHeadName.setAttribute("class", "habit-head-cell");
+            habitGridHeadName.innerText = "Name";
+
+            const habitGridHeadFreq = document.createElement("div");
+            habitGridHeadFreq.setAttribute("class", "habit-head-cell");
+            habitGridHeadFreq.innerText = "Frequency";
+
+
+            habitGrid.appendChild(habitGridRow);
+            habitGridRow.append(habitGridHeadName);
+            habitGridRow.appendChild(habitGridHeadFreq);
+
+            json['habits'].forEach(x => {
+                const habitRow = document.createElement("div");
+                habitRow.setAttribute("class", "habit-row");
+
+               const singleHabitName = document.createElement("div");
+               singleHabitName.setAttribute("class", "habit-cell");
+               singleHabitName.innerText = x.name;
+               habitRow.appendChild(singleHabitName);
+
+               const singleHabitFreq = document.createElement("div");
+               singleHabitFreq.setAttribute("class", "habit-cell");
+               singleHabitFreq.innerText = x.frequency_mode;
+               habitRow.appendChild(singleHabitFreq);
+
+               habitGrid.appendChild(habitRow);
+
+            })
+            habits.appendChild(habitGrid);
+            console.log(habits);
         } else {
             if (json['message']) {
                 message.innerText = json['message'];
