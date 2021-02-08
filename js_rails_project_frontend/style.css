@@ -15,3 +15,34 @@ button#signupLink {
     color: blue;
 }
 
+.habit-grid-container {
+    display: table;
+}
+
+.habit-row {
+    display: table-row;
+    border: 1px solid black;
+}
+
+.habit-head-group {
+    display: table-header-group
+}
+
+.habit-head-cell {
+   display: table-cell;
+   width: 20%;
+}
+
+.habit-cell {
+    display: table-cell;
+    border: 1px solid black;
+}
+
+.habit-name {
+    text-decoration:underline;
+}
+
+.habit-mark {
+    border: 1px solid green;
+    padding: 0;
+}
