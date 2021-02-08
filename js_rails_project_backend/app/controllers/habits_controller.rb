@@ -24,7 +24,7 @@ class HabitsController < ApplicationController
                 habit = Habit.new(habit_params)
                 if habit.save!
                     habit.user = @current_user
-                    render json: {status: true, message: "habit saved"}
+                    render json: {status: true, message: "habit saved", habit: habit}
                 end
 
             else
@@ -32,6 +32,11 @@ class HabitsController < ApplicationController
             end
         else
             render json: {status: false, message: "Not Logged In"}
+        end
+    end
+
+    def delete
+        if logged_in?
         end
     end
 
