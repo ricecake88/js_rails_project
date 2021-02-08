@@ -1,68 +1,61 @@
+
+
 class Habit {
-    constructor(name, frequency_mode=0, num_for_streak=7, streak_counter=0, streak_level="none") {
+    static all = [];
+
+    constructor(name, frequency_mode = 0, num_for_streak = 7, streak_counter = 0, streak_level = "none") {
         this.name = name;
         this.frequency_mode = frequency_mode;
         this.num_for_streak = num_for_streak;
         this.streak_counter = streak_counter;
         this.streak_level = "none";
+        Habit.all.push(this);
     }
 
-    static add_habit_form() {
-        console.log("In add_habit_form");
-        const bodyElement = document.querySelector("body");
+    static renderHabit(habit) {
+        let habitGrid = document.querySelector("div.habit-grid-container");
 
-        const habitForm = document.createElement("form")
-        habitForm.setAttribute("id", "habitForm");
+        let habitRow = document.createElement("div");
+        habitRow.setAttribute("class", "habit-row");
+        habitRow.setAttribute("id", "habitRow" + habit.id);
 
-        const labelForHabitNameElement = document.createElement("label");
-        labelForHabitNameElement.setAttribute("for", "habitName");
-        labelForHabitNameElement.textContent = "Habit Name: ";
+        let singleHabitName = document.createElement("div");
+        singleHabitName.setAttribute("class", "habit-cell habit-name");
+        singleHabitName.setAttribute("id", "habitInfo" + habit.id);
+        singleHabitName.innerText = habit.name;
 
-        const inputHabitNameElement = document.createElement("input");
-        inputHabitNameElement.setAttribute("id", "habitName");
-        inputHabitNameElement.setAttribute("name", "habitName");
-        inputHabitNameElement.setAttribute("type", "text");
+        let singleHabitFreq = document.createElement("div");
+        singleHabitFreq.setAttribute("class", "habit-cell");
+        singleHabitFreq.innerText = habit.frequency_mode;
 
-        const brElementOne = document.createElement("br")
-
-        const labelForScheduleElement = document.createElement("label");
-        labelForScheduleElement.setAttribute("for", "frequency");
-        labelForScheduleElement.textContent = "Frequency";
-
-        const scheduleElement = document.createElement("select");
-        scheduleElement.setAttribute("name", "frequency");
-        scheduleElement.setAttribute("id", "frequency");
-        const optionOne = document.createElement("option");
-        optionOne.setAttribute("value", "1");
-        optionOne.textContent = "Everyday";
-        const optionTwo = document.createElement("option");
-        optionTwo.setAttribute("value", "2");
-        optionTwo.textContent = "Every Other Day";
-        scheduleElement.appendChild(optionOne);
-        scheduleElement.appendChild(optionTwo);
-
-        const brElementTwo = document.createElement("br")
-
-        const submitElement = document.createElement("input");
-        submitElement.setAttribute("name", "submitHabit");
-        submitElement.setAttribute("id", "submitHabit");
-        submitElement.setAttribute("type", "submit");
+        let singleHabitDeleteBtn = document.createElement("button");
+        singleHabitDeleteBtn.setAttribute("class", "btn-delete");
+        singleHabitDeleteBtn.addEventListener("click", (e) => {
+            console.log("Delete");
+        })
+        habitRow.append(singleHabitName, singleHabitFreq, singleHabitDeleteBtn);
 
 
-        habitForm.appendChild(labelForHabitNameElement);
-        habitForm.appendChild(inputHabitNameElement);
-        habitForm.appendChild(brElementOne)
-        habitForm.appendChild(labelForScheduleElement);
-        habitForm.appendChild(scheduleElement);
-        habitForm.appendChild(brElementTwo)
-        habitForm.appendChild(submitElement);
 
-        bodyElement.appendChild(habitForm);
 
+        let habitMarkRow = document.createElement("div");
+        habitMarkRow.setAttribute("class", "habit-row habit-mark");
+        habitMarkRow.setAttribute("id", "habitMark" + habit.id)
+        habitMarkRow.style.display = "none";
+        let habitDetails = document.createElement("p");
+        let habitDetailsInput = document.createElement("input");
+        habitDetailsInput.setAttribute("type", "date");
+        habitDetails.appendChild(habitDetailsInput);
+        habitMarkRow.appendChild(habitDetails);
+
+        habitGrid.appendChild(habitRow);
+        habitGrid.appendChild(habitMarkRow);
+        singleHabitName.innerText = habit.name
+        singleHabitName.addEventListener("click", habitMarkoff);
     }
 
     static renderAddHabitForm() {
-        console.log("In add_habit_form");
+        console.log(">>>>>> renderAddHabitForm()");
         const userAreaElement = document.getElementById("user");
         userAreaElement.innerHTML = "";
 
@@ -106,13 +99,10 @@ class Habit {
         submitElement.textContent = "Submit";
 
 
-        habitForm.appendChild(labelForHabitNameElement);
-        habitForm.appendChild(inputHabitNameElement);
-        habitForm.appendChild(brElementOne)
-        habitForm.appendChild(labelForScheduleElement);
-        habitForm.appendChild(scheduleElement);
-        habitForm.appendChild(brElementTwo)
-        habitForm.appendChild(submitElement);
+        habitForm.append(labelForHabitNameElement,
+            inputHabitNameElement, inputHabitNameElement, brElementOne,
+            labelForScheduleElement, scheduleElement, brElementTwo,
+            submitElement);
 
         userAreaElement.appendChild(habitForm);
         console.log(habitForm);
@@ -121,7 +111,7 @@ class Habit {
     static handleHabitConfig(json) {
         console.log("handleHabitConfig");
         if (json['status'] === true) {
-            document.getElementById('habits').innerHTML =  json['name'];
+            document.getElementById('habits').innerHTML = json['name'];
             console.log(json);
         } else {
             console.log(json);
@@ -152,58 +142,41 @@ class Habit {
         return configObject;
     }
 
+
     static renderHabits(json) {
         console.log(">>>>>renderHabits");
         console.log(json['habits']);
-        const habits = document.querySelector("div#habits");
+
+        const habitGrid = document.querySelector("div#habit-grid-container");
         const message = document.querySelector("div#message");
+
         if (json['status'] == true) {
-
-            // habit display container
-            const habitGrid = document.createElement("div");
-            habitGrid.setAttribute("class", "habit-grid-container");
-
-            // habit table row
-            const habitGridRow = document.createElement("div");
-            habitGridRow.setAttribute("class", "habit-row");
-
-            const habitGridHeadName = document.createElement("div");
-            habitGridHeadName.setAttribute("class", "habit-head-cell");
-            habitGridHeadName.innerText = "Name";
-
-            const habitGridHeadFreq = document.createElement("div");
-            habitGridHeadFreq.setAttribute("class", "habit-head-cell");
-            habitGridHeadFreq.innerText = "Frequency";
-
-
-            habitGrid.appendChild(habitGridRow);
-            habitGridRow.append(habitGridHeadName);
-            habitGridRow.appendChild(habitGridHeadFreq);
-
             json['habits'].forEach(x => {
-                const habitRow = document.createElement("div");
-                habitRow.setAttribute("class", "habit-row");
-
-               const singleHabitName = document.createElement("div");
-               singleHabitName.setAttribute("class", "habit-cell");
-               singleHabitName.innerText = x.name;
-               habitRow.appendChild(singleHabitName);
-
-               const singleHabitFreq = document.createElement("div");
-               singleHabitFreq.setAttribute("class", "habit-cell");
-               singleHabitFreq.innerText = x.frequency_mode;
-               habitRow.appendChild(singleHabitFreq);
-
-               habitGrid.appendChild(habitRow);
-
+                Habit.renderHabit(x);
             })
-            habits.appendChild(habitGrid);
+
             console.log(habits);
+
         } else {
             if (json['message']) {
                 message.innerText = json['message'];
                 document.querySelector("div#error") = '';
             }
         }
+    } //end renderHabits
+
+
+}
+
+function habitMarkoff(e) {
+
+    e.preventDefault();
+    const regex = /[0-9]+/;
+    id = e.target.id.match(regex);
+    let habitShowRow = document.getElementById("habitMark" + id);
+    if (habitShowRow.style.display == "none") {
+       habitShowRow.style.display = "block";
+    } else {
+        habitShowRow.style.display = "none";
     }
 }
