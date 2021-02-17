@@ -98,14 +98,15 @@ function monitorUserArea(user) {
                 console.log("\thabitForm");
                 habitConfig = Habit.createHabitConfig(user);
                 console.log(habitConfig);
-                fetchJSON(`${BACKEND_URL}/habit`, habitConfig)
+                fetchJSON(`${BACKEND_URL}/habits`, habitConfig)
                 .then(json => {
-                    //Habit.handleHabitConfig(json);
-                    console.log("Added Habit")
-                    console.log(json);
-                    createdHabit = new Habit(json['habit']['name'], json['habit']['frequency_mode']);
-                    console.log(createdHabit);
-                    Habit.renderHabit(createdHabit);
+                    Habit.handleHabitConfig(json, user);
+                    //console.log("Added Habit")
+                    //console.log(json);
+                    ////This cannot be the only place. It needs to be created upon renderHabits
+                    //Habit.clearAddField()
+                    //createdHabit = new Habit(json['habit']['id'], json['habit']['name'], json['habit']['frequency_mode']);
+                    //Habit.renderHabit(json['habit'], user);
                 })
                 break;
             default:
@@ -122,7 +123,7 @@ function getHabits(user) {
     let config = user.createAuthConfig(user.authToken);
     return fetchJSON(`${BACKEND_URL}/habits`, config)
     .then(json =>  {
-        Habit.renderHabits(json);
+        Habit.renderHabits(json, user);
     })
 }
 
