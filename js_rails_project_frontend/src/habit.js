@@ -3,18 +3,27 @@
 class Habit {
     static all = [];
 
-    constructor(name, frequency_mode = 0, num_for_streak = 7, streak_counter = 0, streak_level = "none") {
-        this.name = name;
-        this.frequency_mode = frequency_mode;
-        this.num_for_streak = num_for_streak;
-        this.streak_counter = streak_counter;
-        this.streak_level = "none";
+    constructor(id=-1, name, frequency_mode = 0, num_for_streak = 7, streak_counter = 0, streak_level = "none") {
+        this._id = id;
+        this._name = name;
+        this._frequency_mode = frequency_mode;
+        this._num_for_streak = num_for_streak;
+        this._streak_counter = streak_counter;
+        this._streak_level = "none";
         Habit.all.push(this);
     }
 
-    static renderHabit(habit) {
+    /* setter for id */
+    set id(num) {
+        this._id = num;
+    }
+
+
+    static renderHabit(habit, user) {
+        console.log(">>>renderHabit")
         let habitGrid = document.querySelector("div.habit-grid-container");
 
+        console.log(habit.id);
         let habitRow = document.createElement("div");
         habitRow.setAttribute("class", "habit-row");
         habitRow.setAttribute("id", "habitRow" + habit.id);
@@ -30,8 +39,35 @@ class Habit {
 
         let singleHabitDeleteBtn = document.createElement("button");
         singleHabitDeleteBtn.setAttribute("class", "btn-delete");
+        singleHabitDeleteBtn.id = "habitDeleteBtn" + habit.id;
         singleHabitDeleteBtn.addEventListener("click", (e) => {
-            console.log("Delete");
+            let delete_id = parseInt(e.target.id.match(/[0-9]+/)[0]);
+            let configObject = {
+                method: 'delete',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "Authorization": "Bearer " + user.authToken
+                },
+                body: JSON.stringify({
+                    'id': delete_id,
+                    'name': habit.name
+                })
+            };
+
+            console.log(configObject);
+
+            fetchJSON(`${BACKEND_URL}/habits/${delete_id}`, configObject)
+            .then(json => {
+                //Need to put a confirm window?
+                console.log(Habit.all);
+                const habitRowToDelete = document.getElementById(`habitRow${delete_id}`);
+                habitRowToDelete.remove();
+                Habit.all = Habit.all.filter(function(element) {
+                    return element._id != delete_id;
+                })
+                console.log(Habit.all)
+            })
         })
         habitRow.append(singleHabitName, singleHabitFreq, singleHabitDeleteBtn);
 
@@ -42,6 +78,7 @@ class Habit {
         habitMarkRow.setAttribute("class", "habit-row habit-mark");
         habitMarkRow.setAttribute("id", "habitMark" + habit.id)
         habitMarkRow.style.display = "none";
+
         let habitDetails = document.createElement("p");
         let habitDetailsInput = document.createElement("input");
         habitDetailsInput.setAttribute("type", "date");
@@ -52,6 +89,7 @@ class Habit {
         habitGrid.appendChild(habitMarkRow);
         singleHabitName.innerText = habit.name
         singleHabitName.addEventListener("click", habitMarkoff);
+        console.log(habitGrid);
     }
 
     static renderAddHabitForm() {
@@ -108,16 +146,14 @@ class Habit {
         console.log(habitForm);
     }
 
-    static handleHabitConfig(json) {
-        console.log("handleHabitConfig");
-        if (json['status'] === true) {
-            document.getElementById('habits').innerHTML = json['name'];
-            console.log(json);
-        } else {
-            console.log(json);
-            document.getElementById('error').innerHTML = json['message'];
-            document.getElementById('message').innerHTML = '';
-        }
+    static handleHabitConfig(json, user) {
+        console.log(">>> handleHabitConfig");
+        console.log("Added Habit")
+        console.log(json);
+        //This cannot be the only place. It needs to be created upon renderHabits
+        document.querySelector("#habitForm input#habitName").value = "";
+        let createdHabit = new Habit(json['habit']['id'], json['habit']['name'], json['habit']['frequency_mode']);
+        Habit.renderHabit(json['habit'], user);
     }
 
     static createHabitConfig(user) {
@@ -143,7 +179,7 @@ class Habit {
     }
 
 
-    static renderHabits(json) {
+    static renderHabits(json, user) {
         console.log(">>>>>renderHabits");
         console.log(json['habits']);
 
@@ -152,7 +188,9 @@ class Habit {
 
         if (json['status'] == true) {
             json['habits'].forEach(x => {
-                Habit.renderHabit(x);
+                Habit.renderHabit(x, user);
+                new Habit(x.id, x.name, x.frequency_mode);
+                console.log(x);
             })
 
             console.log(habits);
@@ -172,7 +210,8 @@ function habitMarkoff(e) {
 
     e.preventDefault();
     const regex = /[0-9]+/;
-    id = e.target.id.match(regex);
+    let id = e.target.id.match(regex)[0];
+    console.log(id);
     let habitShowRow = document.getElementById("habitMark" + id);
     if (habitShowRow.style.display == "none") {
        habitShowRow.style.display = "block";
