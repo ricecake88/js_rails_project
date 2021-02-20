@@ -57,6 +57,7 @@ function monitorUserArea(user) {
             case "loginForm":
                 console.log("\tLogin Form");
                 config = user.createLoginConfig();
+                console.log(config);
                 //getAuth(user.handleLoginConfig.bind(user), "habits", user, config,);
                 fetchJSON(`${BACKEND_URL}/auth_user`, config)
                 .then(json => {
@@ -78,7 +79,7 @@ function monitorUserArea(user) {
                             })
                         }
                     } else {
-                        callbackFunction(json, status);
+                        console.log("blah");
                     }
                 })
                 break;
@@ -86,7 +87,7 @@ function monitorUserArea(user) {
                 console.log("\tsignupForm");
                 config = User.createSignupConfig();
                 console.log(config);
-                fetchJSON(`${BACKEND_URL}/signup`, config)
+                fetchJSON(`${BACKEND_URL}/users`, config)
                 .then(json => {
                     User.handleSignupConfig(json);
                     if (json['status'] == true) {
