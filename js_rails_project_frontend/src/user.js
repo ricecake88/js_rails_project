@@ -283,36 +283,33 @@ class User {
         const password = document.querySelector("#signupForm input#password").value;
         const password_confirmation = document.querySelector("#signupForm input#passwordConfirmation").value;
 
-        if (password !== password_confirmation) {
-            console.log("Passwords do not match");
-        } else {
-            console.log("They match!");
-            this._password = password;
-            // create configObject from form input
-            let configObject = {
-                method: 'post',
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify({
-                    'email': email,
-                    'first_name': firstName,
-                    'last_name': lastName,
-                    'password': password,
-                    'password_confirmation': password_confirmation
-                }),
-            };
 
-            return configObject;
-        }
+        // create configObject from form input
+        let configObject = {
+            method: 'post',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                'email': email,
+                'first_name': firstName,
+                'last_name': lastName,
+                'password': password,
+                'password_confirmation': password_confirmation
+            }),
+        };
+
+        return configObject;
 
 
     }
 
     static handleSignupConfig(json) {
         console.log(">>>>> handleSignupConfig()")
-        if (json['status']) {
+        if (json.status == 404) {
+            document.getElementById('message').innerHTML = "ERROR. Sign up failed."
+        } else if (json['status'] == true) {
             document.getElementById('message').innerHTML = "Account Created. Please Log In."
             this._first_name = json.first_name;
             this._last_name = json.last_name;
