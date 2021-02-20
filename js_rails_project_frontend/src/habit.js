@@ -73,7 +73,7 @@ class Habit {
 
 
 
-
+        // ----------- mark off date -------------------//
         let habitMarkRow = document.createElement("div");
         habitMarkRow.setAttribute("class", "habit-row habit-mark");
         habitMarkRow.setAttribute("id", "habitMark" + habit.id)
@@ -82,7 +82,35 @@ class Habit {
         let habitDetails = document.createElement("p");
         let habitDetailsInput = document.createElement("input");
         habitDetailsInput.setAttribute("type", "date");
+        habitDetailsInput.id = "habitEntered" + habit.id;
+
+        let habitDetailsBtn = document.createElement("button");
+        habitDetailsBtn.id = 'submitRecHabit' + habit.id;
+        habitDetailsBtn.value = "submit";
+        habitDetailsBtn.name = "submit";
+        habitDetailsBtn.innerText = "submit";
+        habitDetailsBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            console.log("submitted");
+            let record = document.getElementById('habitEntered' + habit.id);
+            console.log(record.value);
+            let configObject = {
+                method: 'post',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "Authorization": "Bearer " + user.authToken
+                },
+                body: JSON.stringify({
+                    'id': habit.id,
+                })                
+            }
+            fetchJSON(`${BACKEND_URL}/habitrecords`, configObject)
+            .then(json => {console.log(json)})
+        })
+
         habitDetails.appendChild(habitDetailsInput);
+        habitDetails.appendChild(habitDetailsBtn);
         habitMarkRow.appendChild(habitDetails);
 
         habitGrid.appendChild(habitRow);
@@ -181,15 +209,17 @@ class Habit {
 
     static renderHabits(json, user) {
         console.log(">>>>>renderHabits");
+        console.log(json);
         console.log(json['habits']);
 
         const habitGrid = document.querySelector("div#habit-grid-container");
         const message = document.querySelector("div#message");
 
-        if (json['status'] == true) {
+        if ((json['status'] == true) && (json['habits'])) {
             json['habits'].forEach(x => {
                 Habit.renderHabit(x, user);
                 new Habit(x.id, x.name, x.frequency_mode);
+                console.log(Habit.all);
                 console.log(x);
             })
 
