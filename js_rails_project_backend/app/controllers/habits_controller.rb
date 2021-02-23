@@ -4,15 +4,11 @@ class HabitsController < ApplicationController
     before_action :authenticate_request!
 
     def index
-        if logged_in?
-            habits = Habit.where(:user_id => @current_user.id)
-            if !habits.present?
-                render json: {status: true, first_name: @current_user.first_name, last_name: @current_user.last_name, email: @current_user.email, password: @current_user.encrypted_password, id: @current_user.id, habits:''};
-            else
-                render json: {status: true, first_name: @current_user.first_name, last_name: @current_user.last_name, email: @current_user.email, password: @current_user.encrypted_password, id: @current_user.id, habits: habits}
-            end
-        else
+        unless logged_in?
             render json: {status: false}
+        else
+            habits = Habit.where(:user_id => @current_user.id)
+            render json: {status: true, first_name: @current_user.first_name, last_name: @current_user.last_name, email: @current_user.email, password: @current_user.encrypted_password, id: @current_user.id, habits: habits}
         end
     end
 
