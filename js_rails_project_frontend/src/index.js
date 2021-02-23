@@ -75,7 +75,7 @@ function monitorUserArea(user) {
                             .then(json => {
                                 user.handleLoginConfig(json);
                                 Habit.renderAddHabitForm();
-                                getHabits(user);
+                                Habit.getHabits(user);
                             })
                         }
                     } else {
@@ -119,14 +119,7 @@ function monitorUserArea(user) {
 
 }
 
-function getHabits(user) {
-    console.log(">>>>>renderHabits()");
-    let config = user.createAuthConfig(user.authToken);
-    return fetchJSON(`${BACKEND_URL}/habits`, config)
-    .then(json =>  {
-        Habit.renderHabits(json, user);
-    })
-}
+
 
 function monitorSignupLink() {
     const signupBtn = document.querySelector("button#signupLink");
