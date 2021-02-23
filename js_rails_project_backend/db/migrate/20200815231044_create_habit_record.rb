@@ -3,7 +3,7 @@ class CreateHabitRecord < ActiveRecord::Migration[5.2]
     create_table :habit_records do |t|
       t.integer :user_id
       t.integer :habit_id
-      t.timestamp :time_of_record
+      t.date :time_of_record
     end
   end
 end
