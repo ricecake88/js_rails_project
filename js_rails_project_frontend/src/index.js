@@ -102,12 +102,6 @@ function monitorUserArea(user) {
                 fetchJSON(`${BACKEND_URL}/habits`, habitConfig)
                 .then(json => {
                     Habit.handleHabitConfig(json, user);
-                    //console.log("Added Habit")
-                    //console.log(json);
-                    ////This cannot be the only place. It needs to be created upon renderHabits
-                    //Habit.clearAddField()
-                    //createdHabit = new Habit(json['habit']['id'], json['habit']['name'], json['habit']['frequency_mode']);
-                    //Habit.renderHabit(json['habit'], user);
                 })
                 break;
             default:
