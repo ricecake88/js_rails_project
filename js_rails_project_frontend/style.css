@@ -17,6 +17,7 @@ button#signupLink {
 
 .habit-grid-container {
     display: table;
+    width:100%;
 }
 
 .habit-row {
@@ -30,7 +31,6 @@ button#signupLink {
 
 .habit-head-cell {
    display: table-cell;
-   width: 20%;
 }
 
 .habit-cell {
@@ -45,4 +45,8 @@ button#signupLink {
 .habit-mark {
     border: 1px solid green;
     padding: 0;
+}
+
+#focusedHabit {
+    display: none;
 }
