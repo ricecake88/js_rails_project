@@ -34,6 +34,7 @@ class HabitsController < ApplicationController
     def destroy
         if logged_in?
             name = params['name']
+            Habit.find(params[:id]).habit_records.destroy_all
             Habit.find(params[:id]).destroy
             render json: {status: true, id: params['id'], message: name + " has been deleted." };
         end
