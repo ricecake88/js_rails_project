@@ -24,22 +24,23 @@ class Habit {
 
     }
 
-    deleteHabit(e, user) {;
+    deleteHabit(e) {
+        console.log(">>>>>>>deleteHabit(e)")
         let delete_id = parseInt(e.target.id.match(/[0-9]+/)[0]);
         let configObject = {
             method: 'delete',
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                "Authorization": "Bearer " + user.authToken
+                "Authorization": "Bearer " + this.user.authToken
             },
             body: JSON.stringify({
                 'id': delete_id,
                 'name': this._name
             })
         }
-//
-        console.log(configObject);
+
+        //console.log(configObject);
         fetchJSON(`${BACKEND_URL}/habits/${delete_id}`, configObject)
         .then(json => {
             //Need to put a confirm window?
@@ -52,8 +53,9 @@ class Habit {
             console.log(Habit.all)
         })
     }
-    renderHabit(user) {
-        console.log(">>>renderHabit")
+
+    renderHabit() {
+        console.log(">>>renderHabit()")
         console.log(this);
         let habitGrid = document.querySelector("div.habit-grid-container");
 
@@ -76,37 +78,9 @@ class Habit {
         singleHabitDeleteBtn.id = "habitDeleteBtn" + this._id;
         singleHabitDeleteBtn.addEventListener("click", (e) => {
             console.log(this);
-            this.deleteHabit(e, user);
-            //let delete_id = parseInt(e.target.id.match(/[0-9]+/)[0]);
-            //let configObject = {
-            //    method: 'delete',
-            //    headers: {
-            //        "Content-Type": "application/json",
-            //        "Accept": "application/json",
-            //        "Authorization": "Bearer " + user.authToken
-            //    },
-            //    body: JSON.stringify({
-            //        'id': delete_id,
-            //        'name': habit.name
-            //    })
-            //};
-//
-           //console.log(configObject);
-
-           //fetchJSON(`${BACKEND_URL}/habits/${delete_id}`, configObject)
-           //.then(json => {
-           //    //Need to put a confirm window?
-           //    console.log(Habit.all);
-           //    const habitRowToDelete = document.getElementById(`habitRow${delete_id}`);
-           //    habitRowToDelete.remove();
-           //    Habit.all = Habit.all.filter(function(element) {
-           //        return element._id != delete_id;
-           //    })
-           //    console.log(Habit.all)
-           //})
+            this.deleteHabit(e);
         })
         habitRow.append(singleHabitName, singleHabitFreq, singleHabitDeleteBtn);
-
 
 
         // ----------- mark off date -------------------//
@@ -135,17 +109,22 @@ class Habit {
                 headers: {
                     "Content-Type": "application/json",
                     "Accept": "application/json",
-                    "Authorization": "Bearer " + user.authToken
+                    "Authorization": "Bearer " + this.user.authToken
                 },
                 body: JSON.stringify({
                     'habit_id': this._id,
                     'time_of_record': record.value,
-                    'user_id': user.id
+                    'user_id': this.user.id
                 })
             }
             console.log(configObject);
             fetchJSON(`${BACKEND_URL}/habit_records`, configObject)
-            .then(json => {console.log(json)})
+            .then(json => {
+                console.log(json);
+                const records = document.createElement("p");
+                records.innerText = json['message']['time_of_record'];
+                habitMarkRow.appendChild(records);
+            })
         })
 
         habitDetails.appendChild(habitDetailsInput);
@@ -231,8 +210,8 @@ class Habit {
         //This cannot be the only place. It needs to be created upon renderHabits
         document.querySelector("#habitForm input#habitName").value = "";
         let createdHabit = new Habit(json['habit']['id'], json['habit']['name'], json['habit']['frequency_mode'],
-            undefined, undefined, user);
-        createdHabit.renderHabit(user);
+            undefined, undefined, json['habit']['streak_level'], user);
+        createdHabit.renderHabit();
     }
 
     static createHabitConfig(user) {
@@ -280,8 +259,7 @@ class Habit {
         if ((json['status'] == true) && (json['habits'])) {
             json['habits'].forEach(x => {
 
-                let habit = new Habit(x.id, x.name, x.frequency_mode, undefined, undefined, user);
-                //Habit.renderHabit(x, user);
+                let habit = new Habit(x.id, x.name, x.frequency_mode, undefined, undefined, x.streak_level, user);
                 habit.renderHabit(user);
 
                 console.log(Habit.all);
