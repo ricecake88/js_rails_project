@@ -14,11 +14,11 @@ class HabitRecordsController < ApplicationController
         unless logged_in?
             render json: {status: false, message: "Blah"}           
         else
-            habit = Habit_Record.find_by(:habit_id => params[:habit_id], :user_id => @current_user.id, :time_of_record => params[:time_of_record])
+            habit = HabitRecord.find_by(:habit_id => params[:habit_id], :user_id => @current_user.id, :time_of_record => params[:time_of_record])
             if habit.present?
-                render json: {status: false, message: "Already Recorded."}
+                render json: {status: false, errors: habit.errors.full_messages.push("Already Recorded")}
             else
-                habit_record = Habit_Record.new(habit_record_params)
+                habit_record = HabitRecord.new(habit_record_params)
                 if habit_record.save!
                     render json: {status: true, message: habit_record}
                 else
@@ -29,6 +29,11 @@ class HabitRecordsController < ApplicationController
 
     end
 
+    def destroy
+        habit_record = HabitRecord(params[:habit_id])
+        habit_record.destroy
+        render json: {status: true, message: "deleted"}
+    end
 
     private
     def habit_record_params
