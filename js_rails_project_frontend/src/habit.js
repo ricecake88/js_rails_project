@@ -250,38 +250,7 @@ class Habit {
         habitRecordsSubmitDateBtn.innerText = "submit";
         habitRecordsSubmitDateBtn.addEventListener("click", (e) => {
             this.addHabitRecord(e);
-            //e.preventDefault();
-            //console.log("submitted");
-            //let record = document.getElementById('habitRecordDateInput' + this._id);
-            //console.log(record.value);
-            //let configObject = {
-            //    method: 'post',
-            //    headers: {
-            //        "Content-Type": "application/json",
-            //        "Accept": "application/json",
-            //        "Authorization": "Bearer " + this.user.authToken
-            //    },
-            //    body: JSON.stringify({
-            //        'habit_id': this._id,
-            //        'time_of_record': record.value,
-            //        'user_id': this.user.id
-            //    })
-            //}
-            //console.log(configObject);
-            //fetchJSON(`${BACKEND_URL}/habit_records`, configObject)
-            //.then(json => {
-            //    console.log(json);
-            //    const records = document.createElement("p");
-            //    const message = document.getElementById("message");
-            //    if (json['status']) {
-            //        records.innerText = json['message']['time_of_record'];
-            //        habitRecordsRow.appendChild(records);
-            //    } else {
-            //        message.innerText = json['errors'];
-            //    }
-            //})
         })
-
 
         const habitInfo = document.createElement("div");
         habitInfo.setAttribute("class", "habit-cell");
