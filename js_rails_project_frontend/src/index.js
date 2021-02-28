@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     User.renderLogin();
     monitorUserArea(user);
     monitorSignupLink();
-    getHabits(user);
+    Habit.getHabits(user);
 
 
 })
