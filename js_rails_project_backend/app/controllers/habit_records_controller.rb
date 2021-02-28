@@ -2,10 +2,12 @@ class HabitRecordsController < ApplicationController
 
     before_action :authenticate_request!
     def index
+        Rails.logger.info("PARAMS: #{params.inspect}")
         unless logged_in?
             render json: { message: "Error not logged in"}
         else
-            render json: { record: Habit_Record.all}
+            records = HabitRecord.where(:habit_id => params[:habit_id])
+            render json: { status: true, record: records}
         end
     end
 
