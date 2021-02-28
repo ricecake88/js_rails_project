@@ -1,5 +1,4 @@
 
-
 class Habit {
     static all = [];
 
@@ -20,8 +19,16 @@ class Habit {
         this._id = num;
     }
 
-    static toggleHabit() {
-
+    createHabitNameSpan(habit) {
+        console.log(habit);
+        let mainHabitSpan = document.createElement("span");
+        mainHabitSpan.contentEditable = true;
+        mainHabitSpan.setAttribute("id", "habitName" + habit._id);
+        mainHabitSpan.innerText = habit._name;
+        mainHabitSpan.addEventListener("dblclick", (e) => {
+            habit.toggleEditName(e, habit)
+        })
+        return mainHabitSpan;
     }
 
     deleteHabit(e) {
@@ -58,36 +65,83 @@ class Habit {
         })
     }
 
+    toggleEditName(e, habit) {
+        console.log("Double Click");
+        const event = e.target;
+        console.log(e);
+
+        let name = event.innerText;
+        let id = event.id;
+        let wheee = habit;
+        console.log("habitCell" + parseInt(e.target.id.match(/[0-9]+/)[0]));
+        const habitCell = document.getElementById("habitCell" + parseInt(e.target.id.match(/[0-9]+/)[0]))
+        habitCell.removeChild(e.target);
+
+        const inputElement = document.createElement("input");
+        inputElement.setAttribute("value", name);
+        habitCell.appendChild(inputElement);
+
+           document.addEventListener("click", (e) => {
+            e.preventDefault();
+            console.log(habit);
+            if (!e.target.id.includes( "habitName")) {
+                   const textAgain = habit.createHabitNameSpan(this);
+                habitCell.removeChild(inputElement);
+                habitCell.appendChild(textAgain);
+            }
+        })
+
+    }
+
+
+
     renderHabit() {
-        console.log(">>>renderHabit()")
+        console.log(">>>renderHabitTest()")
         console.log(this);
-        let habitGrid = document.querySelector("div.habit-grid-container");
 
-        console.log(this._id);
-        let habitRow = document.createElement("div");
-        habitRow.setAttribute("class", "habit-row");
-        habitRow.setAttribute("id", "habitRow" + this._id);
+        let habitTable = document.querySelector("div.habit-table-container");
 
-        let singleHabitName = document.createElement("div");
-        singleHabitName.setAttribute("class", "habit-cell");
-        singleHabitName.setAttribute("id", "habitInfo" + this._id);
-        singleHabitName.innerText = this._name;
+        let mainHabitRow = document.createElement("div");
+        mainHabitRow.setAttribute("class", "habit-row");
+        mainHabitRow.setAttribute("id", "habitRow" + this._id);
 
-        let singleHabitFreq = document.createElement("div");
-        singleHabitFreq.setAttribute("class", "habit-cell");
-        singleHabitFreq.innerText = this._frequency_mode;
+        let arrowCell = document.createElement("div");
+        arrowCell.setAttribute("class", "habit-cell");
+        arrowCell.setAttribute("id", "habitArrow" + this._id);
 
-        let singleHabitCell = document.createElement("div");
-        singleHabitCell.setAttribute("class", "habit-cell");
+        let arrow = document.createElement("img");
+        arrow.src = "http://www.clker.com/cliparts/9/1/9/a/1369857928521711478blue_arrow_down.png";
+        arrow.setAttribute("class", "arrow")
+        arrowCell.appendChild(arrow);
 
-        let singleHabitDeleteBtn = document.createElement("button");
-        singleHabitDeleteBtn.setAttribute("class", "btn-delete");
-        singleHabitDeleteBtn.id = "habitDeleteBtn" + this._id;
-        singleHabitDeleteBtn.innerText="X";
-        singleHabitDeleteBtn.addEventListener("click", this.deleteHabit.bind(this));
-        singleHabitCell.appendChild(singleHabitDeleteBtn);
+        let mainHabitCell = document.createElement("div");
+        mainHabitCell.setAttribute("class", "habit-cell");
+        mainHabitCell.setAttribute("id", "habitCell" + this._id);
 
-        habitRow.append(singleHabitName, singleHabitFreq, singleHabitCell);
+        const mainHabitSpan = this.createHabitNameSpan(this);
+        //let mainHabitSpan = document.createElement("span");
+        //mainHabitSpan.contentEditable = true;
+        //mainHabitSpan.setAttribute("id", "habitName" + this._id);
+        //mainHabitSpan.innerText = this._name;
+        mainHabitCell.appendChild(mainHabitSpan);
+
+
+        let habitFreqMode = document.createElement("div");
+        habitFreqMode.setAttribute("class", "habit-cell");
+        habitFreqMode.innerText = this._frequency_mode;
+
+        let habitRemove = document.createElement("div");
+        habitRemove.setAttribute("class", "habit-cell");
+
+        let habitRemoveDeleteBtn = document.createElement("button");
+        habitRemoveDeleteBtn.setAttribute("class", "btn-delete");
+        habitRemoveDeleteBtn.id = "habitDeleteBtn" + this._id;
+        habitRemoveDeleteBtn.innerText="X";
+        habitRemoveDeleteBtn.addEventListener("click", this.deleteHabit.bind(this));
+        habitRemove.appendChild(habitRemoveDeleteBtn);
+
+        mainHabitRow.append(arrowCell, mainHabitCell, habitFreqMode, habitRemove);
+
 
 
         // ----------- mark off date -------------------//
@@ -95,6 +149,10 @@ class Habit {
         habitMarkRow.setAttribute("class", "habit-row");
         habitMarkRow.setAttribute("id", "habitMark" + this._id)
         habitMarkRow.style.visibility = "hidden";
+        habitMarkRow.style.display = "none";
+
+        let habitDetailsEmptyCell = document.createElement("div");
+        habitDetailsEmptyCell.setAttribute("class", "habit-cell");
 
         let habitDetails = document.createElement("div");
         habitDetails.setAttribute("class","habit-cell");
@@ -144,20 +202,41 @@ class Habit {
 
         const habitInfo = document.createElement("div");
         habitInfo.setAttribute("class", "habit-cell");
-        habitInfo.innerText = "Habit Info";
+        //habitInfo.innerText = "Habit Info";
+        let habitRecordsConfigObject = {
+            method: 'GET',
+            headers: {
+                "Authorization": "Bearer " + this.user.authToken
+            },
+        }
+        fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${this._id}`, habitRecordsConfigObject)
+        .then(json => {
+            console.log(json);
+            let recordString = "";
+            if (json['status'] && json['record'] != undefined) {
+                json['record'].forEach(record => {
+                    const box = document.createElement("span");
+                    box.setAttribute("class", "box");
+                    habitInfo.appendChild(box);
+
+                })
+            }
+        })
 
         habitDetails.appendChild(habitDetailsInput);
         habitDetails.appendChild(habitDetailsBtn);
+        habitMarkRow.appendChild(habitDetailsEmptyCell);
         habitMarkRow.appendChild(habitDetails);
         habitMarkRow.appendChild(habitInfo);
 
-        habitGrid.appendChild(habitRow);
-        habitGrid.appendChild(habitMarkRow);
-        singleHabitName.innerText = this._name;
-        singleHabitName.addEventListener("click", habitMarkoff);
-        console.log(habitGrid);
-    }
+        habitTable.appendChild(mainHabitRow);
+        habitTable.appendChild(habitMarkRow);
+        arrowCell.addEventListener("click", habitMarkoff);
 
+
+
+        console.log(habitTable);
+    }
     static renderAddHabitForm() {
         console.log(">>>>>> renderAddHabitForm()");
         const userAreaElement = document.getElementById("user");
@@ -301,14 +380,17 @@ class Habit {
 
 function habitMarkoff(e) {
 
+    console.log(e.target);
     e.preventDefault();
     const regex = /[0-9]+/;
     let id = e.target.id.match(regex)[0];
-    console.log(id);
+    //let habitShowRow = document.getElementById("habitMark" + id);
     let habitShowRow = document.getElementById("habitMark" + id);
     if (habitShowRow.style.visibility == "hidden") {
        habitShowRow.style.visibility = "visible";
+       habitShowRow.style.display = 'table-row'
     } else {
         habitShowRow.style.visibility = "hidden";
+        habitShowRow.style.display = 'none';
     }
 }
