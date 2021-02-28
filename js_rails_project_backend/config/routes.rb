@@ -5,7 +5,7 @@ Rails.application.routes.draw do
   get '/test', to: 'application#test'
   resources :users, only: [:create]
   resources :habits
-  resources :habit_records, only: [:create, :destroy]
+  resources :habit_records, only: [:index, :create, :destroy]
   #post '/signup', to: 'users#create'
   #delete '/logout', to: 'sessions#destroy'
   #post '/habit', to: 'habits#create'
