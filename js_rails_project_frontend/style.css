@@ -20,9 +20,15 @@ button#signupLink {
     width:100%;
 }
 
+.habit-table-container {
+    display: table;
+    width:100%;
+}
+
 .habit-row {
     display: table-row;
-    border: 1px solid black;
+    border: 1px solid green;
+    width: 100%;
 }
 
 .habit-head-group {
@@ -49,4 +55,17 @@ button#signupLink {
 
 #focusedHabit {
     display: none;
+}
+
+.arrow {
+    width: 10px;
+}
+
+.box {
+    padding: 5px;
+    height: 2px;
+    margin: 1px;
+    display: inline-block;
+    background-color: pink;
+    border: 1px solid black;
 }
