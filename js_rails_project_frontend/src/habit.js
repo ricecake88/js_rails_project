@@ -20,11 +20,13 @@ class Habit {
     }
 
     createHabitNameSpan(habit) {
+        console.log(">>>>>createHabitNameSpan");
         console.log(habit);
         let mainHabitSpan = document.createElement("span");
         mainHabitSpan.contentEditable = true;
-        mainHabitSpan.setAttribute("id", "habitName" + habit._id);
+        mainHabitSpan.setAttribute("id", "habitNameSpan" + habit._id);
         mainHabitSpan.innerText = habit._name;
+        console.log(mainHabitSpan);
         mainHabitSpan.addEventListener("dblclick", (e) => {
             habit.toggleEditName(e, habit)
         })
@@ -66,34 +68,113 @@ class Habit {
     }
 
     toggleEditName(e, habit) {
-        console.log("Double Click");
-        const event = e.target;
-        console.log(e);
+        console.log(">>>>>Double Click");
+        console.log(e.target);
+        console.log(habit);
+        e.preventDefault();
+        const habitCell = e.target.parentNode;
+        console.log(habitCell);
+        let value = "";
+        console.log(e.target.id);
+        console.log("habitNameSpan" + habit._id);
+        if (e.target.id === "habitNameSpan" + habit._id) {
+            //const id = parseInt(e.target.id.match(/[0-9]+/)[0])
+            //console.log(id);
+            console.log("Removing:");
+            console.log("\t");
+            console.log(e.target);
+            habitCell.innerHTML = "";
+            console.log(habitCell);
 
-        let name = event.innerText;
-        let id = event.id;
-        let wheee = habit;
-        console.log("habitCell" + parseInt(e.target.id.match(/[0-9]+/)[0]));
-        const habitCell = document.getElementById("habitCell" + parseInt(e.target.id.match(/[0-9]+/)[0]))
-        habitCell.removeChild(e.target);
+            let inputElement = document.createElement("input");
+            inputElement.setAttribute("value", habit._name);
+            inputElement.setAttribute("id", "habitNameSpan" + habit._id);
+            habitCell.appendChild(inputElement);
+            console.log(inputElement);
+            inputElement.focus();
+            inputElement.addEventListener('change', (e) => {
+                e.preventDefault();
+                value = document.querySelector("input#habitNameSpan" + habit._id).value;
+                console.log(value);
+                habitCell.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    console.log(habit);
 
-        const inputElement = document.createElement("input");
-        inputElement.setAttribute("value", name);
-        habitCell.appendChild(inputElement);
+                    console.log(">>>>>>>>>>>>>>OffClick");
+                    console.log(value);
+                    console.log(e.target);
+                    if (!e.target.id.includes( "habitNameSpan") && value) {
+                        let editConfig = {
+                            method: 'put',
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "Authorization": "Bearer " + habit.user.authToken
+                            },
+                            body: JSON.stringify({
+                                'habit_id': habit._id,
+                                 'name': value,
+                                 'user_id': habit.user.id
+                             })
+                         }
+                        fetchJSON(`${BACKEND_URL}/habits/${habit._id}`, editConfig)
+                        .then(json => {
+                            habit._name = json['habit']['name'];
+                            console.log(">>>>>>> ");
+                            console.log(habit);
+                            const textAgain = habit.createHabitNameSpan(habit);
+                            habitCell.innerHTML = "";
+                            value = "";
+                            habitCell.appendChild(textAgain);
+                        })
 
-           document.addEventListener("click", (e) => {
-            e.preventDefault();
-            console.log(habit);
-            if (!e.target.id.includes( "habitName")) {
-                   const textAgain = habit.createHabitNameSpan(this);
-                habitCell.removeChild(inputElement);
-                habitCell.appendChild(textAgain);
-            }
-        })
+
+                    }
+                })
+            })
+
+            console.log(habitCell);
+        }
 
     }
 
-
+    addHabitRecord(e) {
+        e.preventDefault();
+        console.log("submitted");
+        console.log(this);
+        let record = document.getElementById('habitRecordDateInput' + this._id);
+        console.log(record.value);
+        let configObject = {
+            method: 'post',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": "Bearer " + this.user.authToken
+            },
+            body: JSON.stringify({
+                'habit_id': this._id,
+                'time_of_record': record.value,
+                'user_id': this.user.id
+            })
+        }
+        console.log(configObject);
+        fetchJSON(`${BACKEND_URL}/habit_records`, configObject)
+        .then(json => {
+            console.log(json);
+            const records = document.createElement("p");
+            const message = document.getElementById("message");
+            const habitInfo = document.getElementById("habitInfo" + this._id)
+            if (json['status']) {
+                records.innerText = json['message']['time_of_record'];
+                const box = document.createElement("span");
+                box.setAttribute("class", "box");
+                habitInfo.appendChild(box);
+                habitInfo.appendChild(records);
+            } else {
+                message.innerText = json['errors'];
+            }
+        })
+    }
 
     renderHabit() {
         console.log(">>>renderHabitTest()")
@@ -145,63 +226,66 @@ class Habit {
 
 
         // ----------- mark off date -------------------//
-        let habitMarkRow = document.createElement("div");
-        habitMarkRow.setAttribute("class", "habit-row");
-        habitMarkRow.setAttribute("id", "habitMark" + this._id)
-        habitMarkRow.style.visibility = "hidden";
-        habitMarkRow.style.display = "none";
+        let habitRecordsRow = document.createElement("div");
+        habitRecordsRow.setAttribute("class", "habit-row");
+        habitRecordsRow.setAttribute("id", "habitMark" + this._id)
+        habitRecordsRow.style.visibility = "hidden";
+        habitRecordsRow.style.display = "none";
 
-        let habitDetailsEmptyCell = document.createElement("div");
-        habitDetailsEmptyCell.setAttribute("class", "habit-cell");
+        let habitRecordsEmptyCell = document.createElement("div");
+        habitRecordsEmptyCell.setAttribute("class", "habit-cell");
 
-        let habitDetails = document.createElement("div");
-        habitDetails.setAttribute("class","habit-cell");
+        let habitRecordsSubmitDateRecordsCell = document.createElement("div");
+        habitRecordsSubmitDateRecordsCell.setAttribute("class","habit-cell");
+        habitRecordsSubmitDateRecordsCell.id = "habitRecordSubmitDateCell" + this._id;
 
-        let habitDetailsInput = document.createElement("input");
-        habitDetailsInput.setAttribute("type", "date");
-        habitDetailsInput.id = "habitEntered" + this._id;
+        let habitRecordsSubmitDateInput = document.createElement("input");
+        habitRecordsSubmitDateInput.setAttribute("type", "date");
+        habitRecordsSubmitDateInput.id = "habitRecordDateInput" + this._id;
 
-        let habitDetailsBtn = document.createElement("button");
-        habitDetailsBtn.id = 'submitRecHabit' + this._id;
-        habitDetailsBtn.value = "submit";
-        habitDetailsBtn.name = "submit";
-        habitDetailsBtn.innerText = "submit";
-        habitDetailsBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            console.log("submitted");
-            let record = document.getElementById('habitEntered' + this._id);
-            console.log(record.value);
-            let configObject = {
-                method: 'post',
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                    "Authorization": "Bearer " + this.user.authToken
-                },
-                body: JSON.stringify({
-                    'habit_id': this._id,
-                    'time_of_record': record.value,
-                    'user_id': this.user.id
-                })
-            }
-            console.log(configObject);
-            fetchJSON(`${BACKEND_URL}/habit_records`, configObject)
-            .then(json => {
-                console.log(json);
-                const records = document.createElement("p");
-                const message = document.getElementById("message");
-                if (json['status']) {
-                    records.innerText = json['message']['time_of_record'];
-                    habitMarkRow.appendChild(records);
-                } else {
-                    message.innerText = json['errors'];
-                }
-            })
+        let habitRecordsSubmitDateBtn = document.createElement("button");
+        habitRecordsSubmitDateBtn.id = 'submitRecHabit' + this._id;
+        habitRecordsSubmitDateBtn.value = "submit";
+        habitRecordsSubmitDateBtn.name = "submit";
+        habitRecordsSubmitDateBtn.innerText = "submit";
+        habitRecordsSubmitDateBtn.addEventListener("click", (e) => {
+            this.addHabitRecord(e);
+            //e.preventDefault();
+            //console.log("submitted");
+            //let record = document.getElementById('habitRecordDateInput' + this._id);
+            //console.log(record.value);
+            //let configObject = {
+            //    method: 'post',
+            //    headers: {
+            //        "Content-Type": "application/json",
+            //        "Accept": "application/json",
+            //        "Authorization": "Bearer " + this.user.authToken
+            //    },
+            //    body: JSON.stringify({
+            //        'habit_id': this._id,
+            //        'time_of_record': record.value,
+            //        'user_id': this.user.id
+            //    })
+            //}
+            //console.log(configObject);
+            //fetchJSON(`${BACKEND_URL}/habit_records`, configObject)
+            //.then(json => {
+            //    console.log(json);
+            //    const records = document.createElement("p");
+            //    const message = document.getElementById("message");
+            //    if (json['status']) {
+            //        records.innerText = json['message']['time_of_record'];
+            //        habitRecordsRow.appendChild(records);
+            //    } else {
+            //        message.innerText = json['errors'];
+            //    }
+            //})
         })
 
 
         const habitInfo = document.createElement("div");
         habitInfo.setAttribute("class", "habit-cell");
+        habitInfo.setAttribute("id", "habitInfo" + this._id);
         //habitInfo.innerText = "Habit Info";
         let habitRecordsConfigObject = {
             method: 'GET',
@@ -223,14 +307,13 @@ class Habit {
             }
         })
 
-        habitDetails.appendChild(habitDetailsInput);
-        habitDetails.appendChild(habitDetailsBtn);
-        habitMarkRow.appendChild(habitDetailsEmptyCell);
-        habitMarkRow.appendChild(habitDetails);
-        habitMarkRow.appendChild(habitInfo);
+        habitRecordsSubmitDateRecordsCell.append(habitRecordsSubmitDateInput, habitRecordsSubmitDateBtn);
+        habitRecordsRow.append(habitRecordsEmptyCell);
+        habitRecordsRow.appendChild(habitRecordsSubmitDateRecordsCell);
+        habitRecordsRow.appendChild(habitInfo);
 
         habitTable.appendChild(mainHabitRow);
-        habitTable.appendChild(habitMarkRow);
+        habitTable.appendChild(habitRecordsRow);
         arrowCell.addEventListener("click", habitMarkoff);
 
 
