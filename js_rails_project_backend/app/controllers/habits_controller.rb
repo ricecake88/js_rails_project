@@ -31,10 +31,21 @@ class HabitsController < ApplicationController
         end
     end
 
+    def update
+        unless logged_in?
+            render json: {status: false}
+        else
+            habit = Habit.find(params[:id])
+            if habit.update(:name => params[:name])
+                render json: {status: true, habit: habit}
+            end
+        end
+    end
+
     def destroy
         if logged_in?
             name = params['name']
-            Habit.find(params[:id]).habit_records.destroy_all
+            habit = Habit.find(params[:id]).habit_records.destroy_all
             Habit.find(params[:id]).destroy
             render json: {status: true, id: params['id'], message: name + " has been deleted." };
         end
