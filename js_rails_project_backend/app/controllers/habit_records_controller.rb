@@ -6,8 +6,8 @@ class HabitRecordsController < ApplicationController
         unless logged_in?
             render json: { message: "Error not logged in"}
         else
-            #records = HabitRecord.where(:habit_id => params[:habit_id])
-            records = HabitRecord.records(params)
+            records = HabitRecord.where(:habit_id => params[:habit_id])
+            #records = HabitRecord.records(params)
             render json: { status: true, record: records, time: 1.week.ago.to_date}
         end
     end
@@ -15,7 +15,7 @@ class HabitRecordsController < ApplicationController
     def create
         Rails.logger.info("PARAMS: #{params.inspect}")
         unless logged_in?
-            render json: {status: false, message: "Blah"}           
+            render json: {status: false, message: "Blah"}
         else
             habit = HabitRecord.find_by(:habit_id => params[:habit_id], :user_id => @current_user.id, :time_of_record => params[:time_of_record])
             if habit.present?
@@ -23,7 +23,7 @@ class HabitRecordsController < ApplicationController
             else
                 habit_record = HabitRecord.new(habit_record_params)
                 if habit_record.save!
-                    render json: {status: true, message: habit_record}
+                    render json: {status: true, habit: habit_record}
                 else
                     render json: {status: false, message: "Error, could not be saved."}
                 end
@@ -33,9 +33,12 @@ class HabitRecordsController < ApplicationController
     end
 
     def destroy
-        habit_record = HabitRecord(params[:habit_id])
-        habit_record.destroy
-        render json: {status: true, message: "deleted"}
+        habit_record = HabitRecord.find(params[:id])
+        if habit_record.destroy
+            render json: {status: true, id: params[:id]}
+        else
+            render json: {status: false, message: "Failed"}
+        end
     end
 
     private
