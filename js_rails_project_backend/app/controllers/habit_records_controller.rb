@@ -6,9 +6,12 @@ class HabitRecordsController < ApplicationController
         unless logged_in?
             render json: { message: "Error not logged in"}
         else
-            records = HabitRecord.where(:habit_id => params[:habit_id])
-            #records = HabitRecord.records(params)
-            render json: { status: true, record: records, time: 1.week.ago.to_date}
+            if params[:range] == "all"
+                records = HabitRecord.where(:habit_id => params[:habit_id])
+            elsif params[:range] == "7"
+                records = HabitRecord.records(params)
+            end
+            render json: { status: true, record: records, range: params[:range], time: 1.week.ago.to_date}
         end
     end
 
