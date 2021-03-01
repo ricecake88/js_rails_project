@@ -92,9 +92,12 @@ class Habit {
             habitCell.appendChild(inputElement);
             console.log(inputElement);
             inputElement.focus();
-            inputElement.addEventListener('change', (e) => {
+            inputElement.onblur = (e) => {
+                console.log("Off blur");
+                console.log(e.target);
+                console.log(this);
                 e.preventDefault();
-                value = document.querySelector("input#habitNameSpan" + habit._id).value;
+                value = document.querySelector("input#habitNameSpan" + this._id).value;
                 console.log(value);
                 habitCell.addEventListener("click", (e) => {
                     e.preventDefault();
@@ -109,20 +112,18 @@ class Habit {
                             headers: {
                                 "Content-Type": "application/json",
                                 "Accept": "application/json",
-                                "Authorization": "Bearer " + habit.user.authToken
+                                "Authorization": "Bearer " + this._user.authToken
                             },
                             body: JSON.stringify({
-                                'habit_id': habit._id,
+                                'habit_id': this._id,
                                  'name': value,
-                                 'user_id': habit.user.id
+                                 'user_id': this._user.id
                              })
                          }
-                        fetchJSON(`${BACKEND_URL}/habits/${habit._id}`, editConfig)
+                        fetchJSON(`${BACKEND_URL}/habits/${this._id}`, editConfig)
                         .then(json => {
-                            habit._name = json['habit']['name'];
-                            console.log(">>>>>>> ");
-                            console.log(habit);
-                            const textAgain = habit.createHabitNameSpan(habit);
+                            this._name = json['habit']['name'];
+                            const textAgain = habit.createHabitNameSpan(this);
                             habitCell.innerHTML = "";
                             value = "";
                             habitCell.appendChild(textAgain);
@@ -130,9 +131,8 @@ class Habit {
 
 
                     }
-                })
-            })
-
+                })                
+            }
             console.log(habitCell);
         }
 
