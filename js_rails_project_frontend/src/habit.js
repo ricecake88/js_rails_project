@@ -2,7 +2,7 @@
 class Habit {
     static all_habits = [];
 
-    constructor(id=-1, name, frequency_mode = 0, num_for_streak = 7, streak_counter = 0,
+    constructor(id=-1, name, frequency_mode="Everyday", num_for_streak = 7, streak_counter = 0,
         streak_level = "easy", user=null) {
         this._id = id;
         this._name = name;
@@ -392,11 +392,12 @@ class Habit {
         const scheduleElement = document.createElement("select");
         scheduleElement.setAttribute("name", "frequency");
         scheduleElement.setAttribute("id", "frequency");
+        scheduleElement.selected = 'selected';
         const optionOne = document.createElement("option");
-        optionOne.setAttribute("value", "1");
+        optionOne.setAttribute("value", "Everyday");
         optionOne.textContent = "Everyday";
         const optionTwo = document.createElement("option");
-        optionTwo.setAttribute("value", "2");
+        optionTwo.setAttribute("value", "Every Other Day");
         optionTwo.textContent = "Every Other Day";
         scheduleElement.appendChild(optionOne);
         scheduleElement.appendChild(optionTwo);
@@ -432,13 +433,16 @@ class Habit {
 
     static handleHabitConfig(json, user) {
         console.log(">>> handleHabitConfig");
-        console.log("Added Habit")
-        console.log(json);
+        if (json['true']) {
+            console.log("Added Habit")
         //This cannot be the only place. It needs to be created upon renderHabits
         document.querySelector("#habitForm input#habitName").value = "";
         let createdHabit = new Habit(json['habit']['id'], json['habit']['name'], json['habit']['frequency_mode'],
             undefined, undefined, json['habit']['streak_level'], user);
         createdHabit.renderHabit();
+        } else {
+            document.getElementById("error").innerText = json['errors'];
+        }
     }
 
     static createHabitConfig(user) {
@@ -486,7 +490,7 @@ class Habit {
         if ((json['status'] == true) && (json['habits'])) {
             json['habits'].forEach(x => {
 
-                let habit = new Habit(x.id, x.name, x.frequency_mode, undefined, undefined, x.streak_level, user);
+                let habit = new Habit(x.id, x.name, x.frequency_mode, 7, 0, x.streak_level, user);
                 habit.renderHabit(user);
 
                 console.log(Habit.all);
