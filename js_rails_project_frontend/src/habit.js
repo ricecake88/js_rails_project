@@ -1,6 +1,6 @@
 
 class Habit {
-    static all = [];
+    static all_habits = [];
 
     constructor(id=-1, name, frequency_mode = 0, num_for_streak = 7, streak_counter = 0,
         streak_level = "easy", user=null) {
@@ -10,8 +10,8 @@ class Habit {
         this._num_for_streak = num_for_streak;
         this._streak_counter = streak_counter;
         this._streak_level = streak_level;
-        this.user = user;
-        Habit.all.push(this);
+        this._user = user;
+        Habit.all_habits.push(this);
     }
 
     /* setter for id */
@@ -43,7 +43,7 @@ class Habit {
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                "Authorization": "Bearer " + this.user._authToken
+                "Authorization": "Bearer " + this._user._authToken
             },
             body: JSON.stringify({
                 'id': delete_id,
@@ -140,7 +140,7 @@ class Habit {
 
     addHabitRecord(e) {
         e.preventDefault();
-        console.log("submitted");
+        console.log(">>>>>addHabitRecord")
         console.log(this);
         let record = document.getElementById('habitRecordDateInput' + this._id);
         console.log(record.value);
@@ -149,12 +149,12 @@ class Habit {
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                "Authorization": "Bearer " + this.user.authToken
+                "Authorization": "Bearer " + this._user.authToken
             },
             body: JSON.stringify({
                 'habit_id': this._id,
                 'time_of_record': record.value,
-                'user_id': this.user.id
+                'user_id': this._user.id
             })
         }
         console.log(configObject);
@@ -164,12 +164,24 @@ class Habit {
             const records = document.createElement("p");
             const message = document.getElementById("message");
             const habitInfo = document.getElementById("habitInfo" + this._id)
-            if (json['status']) {
-                records.innerText = json['message']['time_of_record'];
+            if (json['status'] == true) {
+                records.innerText = json['habit']['time_of_record'];
+                new HabitRecord(json['habit']['id'], json['habit']['habit_id'], json['habit']['user_id'], json['habit']['time_of_record']);
+                console.log(HabitRecord.all);
                 const box = document.createElement("span");
                 box.setAttribute("class", "box");
+                box.id = "box" + json['habit']['id'];
+                console.log(box);
                 habitInfo.appendChild(box);
                 habitInfo.appendChild(records);
+
+
+                const habitEditRecordsSelect = document.querySelector("select#habitEditRecord"  + this._id);
+                const optionRecord = document.createElement("option");
+                optionRecord.setAttribute("value", json['habit']['time_of_record']);
+                optionRecord.innerText = json['habit']['time_of_record'];
+                optionRecord.id = "timeRecorded" + json['habit']['id'];
+                habitEditRecordsSelect.appendChild(optionRecord);
             } else {
                 message.innerText = json['errors'];
             }
@@ -235,6 +247,10 @@ class Habit {
         let habitRecordsEmptyCell = document.createElement("div");
         habitRecordsEmptyCell.setAttribute("class", "habit-cell");
 
+        const habitInfo = document.createElement("div");
+        habitInfo.setAttribute("class", "habit-cell");
+        habitInfo.setAttribute("id", "habitInfo" + this._id);
+
         let habitRecordsSubmitDateRecordsCell = document.createElement("div");
         habitRecordsSubmitDateRecordsCell.setAttribute("class","habit-cell");
         habitRecordsSubmitDateRecordsCell.id = "habitRecordSubmitDateCell" + this._id;
@@ -252,34 +268,94 @@ class Habit {
             this.addHabitRecord(e);
         })
 
-        const habitInfo = document.createElement("div");
-        habitInfo.setAttribute("class", "habit-cell");
-        habitInfo.setAttribute("id", "habitInfo" + this._id);
-        //habitInfo.innerText = "Habit Info";
+        const habitEditRecordsSelect = document.createElement("select");
+        habitEditRecordsSelect.setAttribute("display", "inline");
+        habitEditRecordsSelect.setAttribute("name", "habitEditRecord");
+        habitEditRecordsSelect.setAttribute("id", "habitEditRecord"  + this._id);
+
+        const habitRemoveRecordsBtn = document.createElement("button");
+        habitRemoveRecordsBtn.setAttribute("value", "Remove");
+        habitRemoveRecordsBtn.setAttribute("name", "Remove");
+        habitRemoveRecordsBtn.innerText = "Remove";
+        habitRemoveRecordsBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const timeOfRecord = document.getElementById("habitEditRecord" + this._id).value;
+            let deleteRecordConfig = {
+                method: 'delete',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "Authorization": "Bearer " + this._user._authToken
+                },
+                body: JSON.stringify({
+                    'habit_id': this._id,
+                    'user_id': this._user.id,
+                    "time_of_record": timeOfRecord,
+                })
+
+            }
+            const habitRecordToDelete = HabitRecord.all_records.find(record => {
+                console.log(record);
+                console.log(this);
+                if (record.user_id == this._user.id &&
+                    record.habit_id == this._id &&
+                    record.timeOfRecord == timeOfRecord) {
+                        return record;
+                    }
+            })
+            console.log(habitRecordToDelete);
+            //console.log(configObject);
+            fetchJSON(`${BACKEND_URL}/habit_records/${habitRecordToDelete.id}`, deleteRecordConfig)
+                .then(json => {
+                    console.log(json);
+                    if (json['status']) {
+                        console.log("Removing a Box and Option")
+                    const boxToRemove = document.querySelector("span#box" + json['id']);
+                    const habitInfo = document.querySelector("div#habitInfo" + this._id);
+                    const habitRecordsOption = document.querySelector("option#timeRecorded" + json['id']);
+                    habitInfo.removeChild(boxToRemove);
+                    habitEditRecordsSelect.removeChild(habitRecordsOption);
+                    }
+                })
+        })
+
         let habitRecordsConfigObject = {
             method: 'GET',
             headers: {
-                "Authorization": "Bearer " + this.user.authToken
+                "Authorization": "Bearer " + this._user.authToken
             },
         }
+        console.log(habitRecordsConfigObject);
+        console.log("Fetching this:")
+        console.log(`${BACKEND_URL}/habit_records?habit_id=${this._id}`);
         fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${this._id}`, habitRecordsConfigObject)
         .then(json => {
+            console.log("RETRIEVING HABIT RECORDS");
             console.log(json);
-            let recordString = "";
             if (json['status'] && json['record'] != undefined) {
                 json['record'].forEach(record => {
+                    new HabitRecord(record['id'], record['habit_id'], record['user_id'], record['time_of_record'])
                     const box = document.createElement("span");
                     box.setAttribute("class", "box");
+                    box.id = "box" + record['id'];
                     habitInfo.appendChild(box);
+
+                    const optionRecord = document.createElement("option");
+                    optionRecord.setAttribute("value", record['time_of_record']);
+                    optionRecord.setAttribute("id", "timeRecorded" + record['id'])
+                    optionRecord.innerText = record['time_of_record'];
+                    habitEditRecordsSelect.appendChild(optionRecord);
+
 
                 })
             }
         })
 
-        habitRecordsSubmitDateRecordsCell.append(habitRecordsSubmitDateInput, habitRecordsSubmitDateBtn);
         habitRecordsRow.append(habitRecordsEmptyCell);
-        habitRecordsRow.appendChild(habitRecordsSubmitDateRecordsCell);
         habitRecordsRow.appendChild(habitInfo);
+        habitRecordsSubmitDateRecordsCell.append(habitRecordsSubmitDateInput, habitRecordsSubmitDateBtn);
+        habitRecordsSubmitDateRecordsCell.append(habitEditRecordsSelect, habitRemoveRecordsBtn);
+        habitRecordsRow.appendChild(habitRecordsSubmitDateRecordsCell);
 
         habitTable.appendChild(mainHabitRow);
         habitTable.appendChild(habitRecordsRow);
