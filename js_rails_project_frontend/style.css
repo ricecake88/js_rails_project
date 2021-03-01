@@ -5,7 +5,10 @@ div.hidden {
 div.show {
     display:block;
 }
-
+div#error {
+    color: red;
+    font-weight: bold;
+}
 button#signupLink {
     text-decoration:underline;
     border: none;
