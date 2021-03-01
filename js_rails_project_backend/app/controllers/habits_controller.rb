@@ -24,7 +24,7 @@ class HabitsController < ApplicationController
                 end
 
             else
-                render json: {status: false, message: "habit exists"}
+                render json: {status: false, errors: habit.errors.full_messages.push("Habit Already Exists")}
             end
         else
             render json: {status: false, message: "Not Logged In"}
