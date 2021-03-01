@@ -2,8 +2,8 @@
 class Habit {
     static all_habits = [];
 
-    constructor(id=-1, name, frequency_mode="Everyday", num_for_streak = 7, streak_counter = 0,
-        streak_level = "easy", user=null) {
+    constructor(id = -1, name, frequency_mode = "Everyday", num_for_streak = 7, streak_counter = 0,
+        streak_level = "easy", user = null) {
         this._id = id;
         this._name = name;
         this._frequency_mode = frequency_mode;
@@ -53,18 +53,18 @@ class Habit {
 
         //console.log(configObject);
         fetchJSON(`${BACKEND_URL}/habits/${delete_id}`, configObject)
-        .then(json => {
-            //Need to put a confirm window?
-            console.log(Habit.all);
-            const habitRowToDelete = document.getElementById(`habitRow${delete_id}`);
-            habitRowToDelete.remove();
-            const habitMarkToDelete = document.getElementById(`habitMark${delete_id}`);
-            habitMarkToDelete.remove();
-            Habit.all = Habit.all.filter(function(element) {
-                return element._id != delete_id;
+            .then(json => {
+                //Need to put a confirm window?
+                console.log(Habit.all);
+                const habitRowToDelete = document.getElementById(`habitRow${delete_id}`);
+                habitRowToDelete.remove();
+                const habitMarkToDelete = document.getElementById(`habitMark${delete_id}`);
+                habitMarkToDelete.remove();
+                Habit.all = Habit.all.filter(function (element) {
+                    return element._id != delete_id;
+                })
+                console.log(Habit.all)
             })
-            console.log(Habit.all)
-        })
     }
 
     toggleEditName(e, habit) {
@@ -106,7 +106,7 @@ class Habit {
                     console.log(">>>>>>>>>>>>>>OffClick");
                     console.log(value);
                     console.log(e.target);
-                    if (!e.target.id.includes( "habitNameSpan") && value) {
+                    if (!e.target.id.includes("habitNameSpan") && value) {
                         let editConfig = {
                             method: 'put',
                             headers: {
@@ -116,22 +116,22 @@ class Habit {
                             },
                             body: JSON.stringify({
                                 'habit_id': this._id,
-                                 'name': value,
-                                 'user_id': this._user.id
-                             })
-                         }
+                                'name': value,
+                                'user_id': this._user.id
+                            })
+                        }
                         fetchJSON(`${BACKEND_URL}/habits/${this._id}`, editConfig)
-                        .then(json => {
-                            this._name = json['habit']['name'];
-                            const textAgain = habit.createHabitNameSpan(this);
-                            habitCell.innerHTML = "";
-                            value = "";
-                            habitCell.appendChild(textAgain);
-                        })
+                            .then(json => {
+                                this._name = json['habit']['name'];
+                                const textAgain = habit.createHabitNameSpan(this);
+                                habitCell.innerHTML = "";
+                                value = "";
+                                habitCell.appendChild(textAgain);
+                            })
 
 
                     }
-                })                
+                })
             }
             console.log(habitCell);
         }
@@ -159,33 +159,33 @@ class Habit {
         }
         console.log(configObject);
         fetchJSON(`${BACKEND_URL}/habit_records`, configObject)
-        .then(json => {
-            console.log(json);
-            const records = document.createElement("p");
-            const message = document.getElementById("message");
-            const habitInfo = document.getElementById("habitInfo" + this._id)
-            if (json['status'] == true) {
-                records.innerText = json['habit']['time_of_record'];
-                new HabitRecord(json['habit']['id'], json['habit']['habit_id'], json['habit']['user_id'], json['habit']['time_of_record']);
-                console.log(HabitRecord.all);
-                const box = document.createElement("span");
-                box.setAttribute("class", "box");
-                box.id = "box" + json['habit']['id'];
-                console.log(box);
-                habitInfo.appendChild(box);
-                habitInfo.appendChild(records);
+            .then(json => {
+                console.log(json);
+                const records = document.createElement("p");
+                const message = document.getElementById("message");
+                const habitInfo = document.getElementById("habitInfo" + this._id)
+                if (json['status'] == true) {
+                    records.innerText = json['habit']['time_of_record'];
+                    new HabitRecord(json['habit']['id'], json['habit']['habit_id'], json['habit']['user_id'], json['habit']['time_of_record']);
+                    console.log(HabitRecord.all);
+                    const box = document.createElement("span");
+                    box.setAttribute("class", "box");
+                    box.id = "box" + json['habit']['id'];
+                    console.log(box);
+                    habitInfo.appendChild(box);
+                    habitInfo.appendChild(records);
 
 
-                const habitEditRecordsSelect = document.querySelector("select#habitEditRecord"  + this._id);
-                const optionRecord = document.createElement("option");
-                optionRecord.setAttribute("value", json['habit']['time_of_record']);
-                optionRecord.innerText = json['habit']['time_of_record'];
-                optionRecord.id = "timeRecorded" + json['habit']['id'];
-                habitEditRecordsSelect.appendChild(optionRecord);
-            } else {
-                message.innerText = json['errors'];
-            }
-        })
+                    const habitEditRecordsSelect = document.querySelector("select#habitEditRecord" + this._id);
+                    const optionRecord = document.createElement("option");
+                    optionRecord.setAttribute("value", json['habit']['time_of_record']);
+                    optionRecord.innerText = json['habit']['time_of_record'];
+                    optionRecord.id = "timeRecorded" + json['habit']['id'];
+                    habitEditRecordsSelect.appendChild(optionRecord);
+                } else {
+                    message.innerText = json['errors'];
+                }
+            })
     }
 
     renderHabit() {
@@ -229,7 +229,7 @@ class Habit {
         let habitRemoveDeleteBtn = document.createElement("button");
         habitRemoveDeleteBtn.setAttribute("class", "btn-delete");
         habitRemoveDeleteBtn.id = "habitDeleteBtn" + this._id;
-        habitRemoveDeleteBtn.innerText="X";
+        habitRemoveDeleteBtn.innerText = "X";
         habitRemoveDeleteBtn.addEventListener("click", this.deleteHabit.bind(this));
         habitRemove.appendChild(habitRemoveDeleteBtn);
 
@@ -252,7 +252,7 @@ class Habit {
         habitInfo.setAttribute("id", "habitInfo" + this._id);
 
         let habitRecordsSubmitDateRecordsCell = document.createElement("div");
-        habitRecordsSubmitDateRecordsCell.setAttribute("class","habit-cell");
+        habitRecordsSubmitDateRecordsCell.setAttribute("class", "habit-cell");
         habitRecordsSubmitDateRecordsCell.id = "habitRecordSubmitDateCell" + this._id;
 
         let habitRecordsSubmitDateInput = document.createElement("input");
@@ -271,7 +271,7 @@ class Habit {
         const habitEditRecordsSelect = document.createElement("select");
         habitEditRecordsSelect.setAttribute("display", "inline");
         habitEditRecordsSelect.setAttribute("name", "habitEditRecord");
-        habitEditRecordsSelect.setAttribute("id", "habitEditRecord"  + this._id);
+        habitEditRecordsSelect.setAttribute("id", "habitEditRecord" + this._id);
 
         const habitRemoveRecordsBtn = document.createElement("button");
         habitRemoveRecordsBtn.setAttribute("value", "Remove");
@@ -300,8 +300,8 @@ class Habit {
                 if (record.user_id == this._user.id &&
                     record.habit_id == this._id &&
                     record.timeOfRecord == timeOfRecord) {
-                        return record;
-                    }
+                    return record;
+                }
             })
             console.log(habitRecordToDelete);
             //console.log(configObject);
@@ -310,11 +310,11 @@ class Habit {
                     console.log(json);
                     if (json['status']) {
                         console.log("Removing a Box and Option")
-                    const boxToRemove = document.querySelector("span#box" + json['id']);
-                    const habitInfo = document.querySelector("div#habitInfo" + this._id);
-                    const habitRecordsOption = document.querySelector("option#timeRecorded" + json['id']);
-                    habitInfo.removeChild(boxToRemove);
-                    habitEditRecordsSelect.removeChild(habitRecordsOption);
+                        const boxToRemove = document.querySelector("span#box" + json['id']);
+                        const habitInfo = document.querySelector("div#habitInfo" + this._id);
+                        const habitRecordsOption = document.querySelector("option#timeRecorded" + json['id']);
+                        habitInfo.removeChild(boxToRemove);
+                        habitEditRecordsSelect.removeChild(habitRecordsOption);
                     }
                 })
         })
@@ -329,27 +329,27 @@ class Habit {
         console.log("Fetching this:")
         console.log(`${BACKEND_URL}/habit_records?habit_id=${this._id}`);
         fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${this._id}`, habitRecordsConfigObject)
-        .then(json => {
-            console.log("RETRIEVING HABIT RECORDS");
-            console.log(json);
-            if (json['status'] && json['record'] != undefined) {
-                json['record'].forEach(record => {
-                    new HabitRecord(record['id'], record['habit_id'], record['user_id'], record['time_of_record'])
-                    const box = document.createElement("span");
-                    box.setAttribute("class", "box");
-                    box.id = "box" + record['id'];
-                    habitInfo.appendChild(box);
+            .then(json => {
+                console.log("RETRIEVING HABIT RECORDS");
+                console.log(json);
+                if (json['status'] && json['record'] != undefined) {
+                    json['record'].forEach(record => {
+                        new HabitRecord(record['id'], record['habit_id'], record['user_id'], record['time_of_record'])
+                        const box = document.createElement("span");
+                        box.setAttribute("class", "box");
+                        box.id = "box" + record['id'];
+                        habitInfo.appendChild(box);
 
-                    const optionRecord = document.createElement("option");
-                    optionRecord.setAttribute("value", record['time_of_record']);
-                    optionRecord.setAttribute("id", "timeRecorded" + record['id'])
-                    optionRecord.innerText = record['time_of_record'];
-                    habitEditRecordsSelect.appendChild(optionRecord);
+                        const optionRecord = document.createElement("option");
+                        optionRecord.setAttribute("value", record['time_of_record']);
+                        optionRecord.setAttribute("id", "timeRecorded" + record['id'])
+                        optionRecord.innerText = record['time_of_record'];
+                        habitEditRecordsSelect.appendChild(optionRecord);
 
 
-                })
-            }
-        })
+                    })
+                }
+            })
 
         habitRecordsRow.append(habitRecordsEmptyCell);
         habitRecordsRow.appendChild(habitInfo);
@@ -412,7 +412,7 @@ class Habit {
         //streakElement.setAttribute("name", "numStreak");
         //streakElement.setAttribute("id", "numStreak");
         //for (let i = 0; i < 30; i++) {
-//
+        //
         //}
 
         const submitElement = document.createElement("button");
@@ -433,13 +433,14 @@ class Habit {
 
     static handleHabitConfig(json, user) {
         console.log(">>> handleHabitConfig");
-        if (json['true']) {
+        console.log(json);
+        if (json['status']) {
             console.log("Added Habit")
-        //This cannot be the only place. It needs to be created upon renderHabits
-        document.querySelector("#habitForm input#habitName").value = "";
-        let createdHabit = new Habit(json['habit']['id'], json['habit']['name'], json['habit']['frequency_mode'],
-            undefined, undefined, json['habit']['streak_level'], user);
-        createdHabit.renderHabit();
+            //This cannot be the only place. It needs to be created upon renderHabits
+            document.querySelector("#habitForm input#habitName").value = "";
+            let createdHabit = new Habit(json['habit']['id'], json['habit']['name'], json['habit']['frequency_mode'],
+                undefined, undefined, json['habit']['streak_level'], user);
+            createdHabit.renderHabit();
         } else {
             document.getElementById("error").innerText = json['errors'];
         }
@@ -474,9 +475,9 @@ class Habit {
         console.log(">>>>>getHabits()");
         let config = user.createAuthConfig(user.authToken);
         return fetchJSON(`${BACKEND_URL}/habits`, config)
-        .then(json =>  {
-            Habit.renderHabits(json, user);
-        })
+            .then(json => {
+                Habit.renderHabits(json, user);
+            })
     }
 
     static renderHabits(json, user) {
@@ -519,8 +520,8 @@ function habitMarkoff(e) {
     //let habitShowRow = document.getElementById("habitMark" + id);
     let habitShowRow = document.getElementById("habitMark" + id);
     if (habitShowRow.style.visibility == "hidden") {
-       habitShowRow.style.visibility = "visible";
-       habitShowRow.style.display = 'table-row'
+        habitShowRow.style.visibility = "visible";
+        habitShowRow.style.display = 'table-row'
     } else {
         habitShowRow.style.visibility = "hidden";
         habitShowRow.style.display = 'none';
