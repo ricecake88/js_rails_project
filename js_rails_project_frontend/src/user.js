@@ -1,11 +1,13 @@
 
 class User {
+
     constructor(firstName="", email="", password="", authToken="", login_state=false) {
         this._email = email;
         this._firstName = firstName;
         this._password = password; //needs encryption - do I need this ?
         this._loggedIn = login_state;
         this._authToken = authToken;
+        this._habits = [];
         this._id = -1;
     }
 
@@ -46,6 +48,11 @@ class User {
     get id() {
         return this._id;
     }
+
+    get habits() {
+        return this._habits;
+    }
+
 
     fetch_json(action_path, configObject) {
         return fetch(action_path, configObject)
