@@ -6,10 +6,17 @@ fetch(`${BACKEND_URL}/test`)
 function fetchJSON(action_path, configObject) {
     return fetch(action_path, configObject)
     .then(response => response.json())
+    //.then(response => {
+    //    if (!response.ok) {
+    //        throw new Error(response);
+    //    } else {
+    //        response.json();
+    //    }
+    //})
     .then(json => json)
     .catch(function(error) {
-      let messageElement = document.getElementById("message");
-      messageElement.innerText = "ERROR";
+      let errorElement = document.getElementById("error");
+      errorElement.innerText = error.message;
     })
   }
 
@@ -45,6 +52,7 @@ function getAuth(callbackFunction, action, user, config={}) {
 function monitorUserArea(user) {
     console.log(">>>> monitorUserArea");
     console.log(user);
+
     const userAreaElement = document.getElementById("user");
     userAreaElement.addEventListener("submit", function(e) {
         e.preventDefault();
@@ -53,6 +61,7 @@ function monitorUserArea(user) {
         formElement = this.querySelectorAll("form")[0];
         const formName = formElement.getAttribute("name");
         console.log("\tSelecting: " + formName);
+
         switch(formName) {
             case "loginForm":
                 console.log("\tLogin Form");
@@ -76,6 +85,7 @@ function monitorUserArea(user) {
                                 user.handleLoginConfig(json);
                                 Habit.renderAddHabitForm();
                                 Habit.getHabits(user);
+                                renderAllHabits(user);
                             })
                         }
                     } else {
@@ -86,7 +96,7 @@ function monitorUserArea(user) {
             case "signupForm":
                 console.log("\tsignupForm");
                 config = User.createSignupConfig();
-                console.log(config);
+                //console.log(config);
                 fetchJSON(`${BACKEND_URL}/users`, config)
                 .then(json => {
                     User.handleSignupConfig(json);
@@ -97,12 +107,7 @@ function monitorUserArea(user) {
                 break;
             case "habitForm":
                 console.log("\thabitForm");
-                habitConfig = Habit.createHabitConfig(user);
-                console.log(habitConfig);
-                fetchJSON(`${BACKEND_URL}/habits`, habitConfig)
-                .then(json => {
-                    Habit.handleHabitConfig(json, user);
-                })
+                Habit.createHabit(user);
                 break;
             default:
                 break;
