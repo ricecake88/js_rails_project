@@ -1,3 +1,7 @@
+body {
+    font: 9pt Arial, Sans-Serif;
+}
+
 div.hidden {
     display:none;
 }
@@ -71,4 +75,18 @@ button#signupLink {
     display: inline-block;
     background-color: pink;
     border: 1px solid black;
+}
+
+.boxAll {
+    display: inline-block;
+    background-color: pink;
+    border: 1px solid black;
+    padding: 5px;
+    height:0px;
+    margin: 0px;
+}
+
+.blah {
+    display: inline-block;
+    padding: 10px;
 }
