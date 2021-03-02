@@ -8,7 +8,7 @@ class HabitRecordsController < ApplicationController
         else
             if params[:range] == "all"
                 records = HabitRecord.where(:habit_id => params[:habit_id])
-            elsif params[:range] == "7"
+            elsif params[:range] == "last7"
                 records = HabitRecord.records(params)
             end
             render json: { status: true, record: records, range: params[:range], time: 1.week.ago.to_date}
