@@ -633,73 +633,113 @@ function habitMarkoff(e) {
     }
 }
 
+function filterHabitRecords(e, user) {
+    console.log("clicked Filter Submit button");
+    console.log(e.target);
+    e.preventDefault();
+    getAllHabits(user);
+}
+
+function getAllHabits(user) {
+    console.log("getAllHabits");
+
+    let config = user.createAuthConfig(user.authToken);
+    const range = document.querySelectorAll("select").forEach(function(select) {
+        return select.id.includes("selectFilterHabits");
+    })
+
+    const habitTableElement = document.getElementById("allHabitsTable");
+    habitTableElement.innerHTML = "";
+    fetchJSON(`${BACKEND_URL}/habits`, config)
+    .then(json => {
+        console.log("Fetched all habits");
+        const pElement = document.createElement("p");
+        pElement.id = "test";
+        if (json['status'] && json['habits'] != undefined) {
+            json['habits'].forEach(habit => {
+                const habitRowElement = document.createElement("div");
+                habitRowElement.setAttribute("class", "habit-row");
+                habitRowElement.setAttribute("id", "allHabitRow" + habit.id)
+
+
+                const habitSpanElement = document.createElement("span");
+                habitSpanElement.setAttribute("class", "habit-cell");
+                habitSpanElement.innerText = habit.name;
+
+                habitRowElement.append(habitSpanElement);
+                habitTableElement.append(habitRowElement);
+                user.habits.push(habit);
+                getFilteredHabitRecords(user, habit);
+
+            })
+
+
+        }
+    })
+}
+
+function getFilteredHabitRecords(user, habit) {
+    let config = user.createAuthConfig(user.authToken);
+
+    const filterRange = (document.querySelector("select#selectFilterHabits").value == null) ? "last7" :
+            document.querySelector("select#selectFilterHabits").value;
+    console.log(filterRange);
+    const habitRowElement = document.getElementById("allHabitRow" + habit.id);
+        fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${habit.id}&range=${filterRange}`, config)
+        .then(json => {
+            console.log("going through each habit");
+            console.log(json);
+            const recordsElement = document.createElement("div");
+            recordsElement.setAttribute("class", "habit-cell");
+
+            if (json['status'] && json['record'] != undefined) {
+                json['record'].forEach(record => {
+
+
+                    const box = document.createElement("span");
+                    box.setAttribute("class", "boxAll");
+                    box.id = "box" + record['id'];
+                    recordsElement.append(box);
+                })
+                habitRowElement.append(recordsElement);
+            }
+        })
+
+}
+
+
 function renderAllHabits(user) {
     console.log("renderAllHabits!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     const allHabitsDivElement = document.getElementById("allHabits");
-    const allHabitNamesDivElement = document.createElement("div");
-    allHabitNamesDivElement.setAttribute("class", "blah");
 
-    const allHabitsFilterSelect = document.createElement("div");
-    allHabitsFilterSelect.setAttribute("id", "habitsFilterSelect");
-
-    const colorHabitsDivElement = document.createElement("div");
-    colorHabitsDivElement.setAttribute("class", "blah");
-
-    let config = user.createAuthConfig(user.authToken);
-    allHabitsDivElement.appendChild(allHabitsFilterSelect);
-    allHabitsDivElement.appendChild(allHabitNamesDivElement);
-    allHabitsDivElement.appendChild(colorHabitsDivElement);
+    const allHabitsFilterDiv = document.createElement("div");
+    const allHabitsFilterSelect = document.createElement("select");
+    allHabitsFilterSelect.id = "selectFilterHabits";
     allHabitsFilterSelect.innerHTML =
     `
-    <select name="filter">
         <option name="all" value="all">All
-        <option name="last7" value="last 7" selected>Last Seven Days
+        <option name="last7" value="last7" selected>Last Seven Days
         <option name="currentMonth" value="currentMonth">Current Month
         <option name="currentYear" value="currentYear">Current Year
-    </select>`
+    `
 
-    fetchJSON(`${BACKEND_URL}/habits`, config)
-    .then(json => {
-        console.log(json);
-        let htmlString = "";
-        if (json['status'] && json['habits'] != undefined) {
-            json['habits'].forEach(habit => {
-                htmlString += `${habit.name}<br/>`;
-                //need to change location of where this is pushed this is temporary
-                //need to add when adding a habit, not here
-                user.habits.push(habit);
-            })
-            allHabitNamesDivElement.innerHTML = htmlString;
-        }
-        const filterRange = (document.querySelector("div#habitsFilterSelect").value !== null) ? "last7" : document.querySelector("div#habitsFilterSelect").value;
-        user.habits.forEach(habit => {
-            fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${habit.id}&range=${filterRange}`, config)
-            .then(json => {
-                console.log("going through each habit");
-                console.log(json);
-                if (json['status'] && json['record'] != undefined) {
-                    json['record'].forEach(record => {
-                        //onst optionRecord = document.createElement("option");
-                        //ptionRecord.setAttribute("value", record['time_of_record']);
-                        //ptionRecord.setAttribute("id", "timeRecorded" + record['id'])
-                        //ptionRecord.innerText = record['time_of_record'];
-                        //llHabitsFilterSelect.appendChild(optionRecord);
+    const allHabitsFilterSubmit = document.createElement("button");
+    allHabitsFilterSubmit.setAttribute("class", "filterHabits");
+    allHabitsFilterSubmit.value = "filterHabits";
+    allHabitsFilterSubmit.name = "filterHabits";
+    allHabitsFilterSubmit.innerText = "Filter";
+    allHabitsFilterSubmit.addEventListener("click", function(e) { filterHabitRecords(e, user)});
 
-                        const box = document.createElement("span");
-                        box.setAttribute("class", "boxAll");
-                        box.id = "box" + record['id'];
-                        colorHabitsDivElement.append(box);
+        const allHabitNamesTableElement = document.createElement("div");
+        allHabitNamesTableElement.setAttribute("class", "habit-table-container");
+        allHabitNamesTableElement.setAttribute("id", "allHabitsTable");
 
-                    })
-                    const brElement = document.createElement("br");
-                    brElement.id = "habitBr" + habit.id;
-                    colorHabitsDivElement.appendChild(brElement);
-                }
-            })
-        })
+    allHabitsFilterDiv.appendChild(allHabitsFilterSelect);
+    allHabitsFilterDiv.appendChild(allHabitsFilterSubmit);
+    allHabitsDivElement.appendChild(allHabitsFilterDiv);
+    allHabitsDivElement.appendChild(allHabitNamesTableElement);
 
-        console.log(allHabitsDivElement);
-    })
+    getAllHabits(user);
 
 
 
