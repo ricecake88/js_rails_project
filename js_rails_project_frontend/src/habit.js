@@ -397,90 +397,6 @@ class Habit {
 
     }
 
-    addHabitRecord(e) { //TO-DO - move this to HabitRecord???
-        e.preventDefault();
-        console.log(">>>>>addHabitRecord")
-        let record = document.getElementById('habitRecordDateInput' + this._id);
-        let configObject = {
-            method: 'post',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": "Bearer " + this._user.authToken
-            },
-            body: JSON.stringify({
-                'habit_id': this._id,
-                'time_of_record': record.value,
-                'user_id': this._user.id
-            })
-        }
-        console.log(configObject);
-        fetchJSON(`${BACKEND_URL}/habit_records`, configObject)
-            .then(json => {
-                const records = document.createElement("p");
-                const message = document.getElementById("message");
-                const habitRecordBoxesDiv = document.getElementById("habitRecordBoxes" + this._id)
-                if (json['status'] == true) {
-                    records.innerText = json['habit']['time_of_record'];
-                    new HabitRecord(json['habit']['id'], json['habit']['habit_id'], json['habit']['user_id'], json['habit']['time_of_record']);
-                    const box = document.createElement("span");
-                    box.setAttribute("class", "box");
-                    box.id = "box" + json['habit']['id'];
-                    habitRecordBoxesDiv.appendChild(box);
-                    habitRecordBoxesDiv.appendChild(records);
-
-
-                    const habitEditRecordsSelect = document.querySelector("select#habitEditRecord" + this._id);
-                    const optionRecord = document.createElement("option");
-                    optionRecord.setAttribute("value", json['habit']['time_of_record']);
-                    optionRecord.innerText = json['habit']['time_of_record'];
-                    optionRecord.id = "timeRecorded" + json['habit']['id'];
-                    habitEditRecordsSelect.appendChild(optionRecord);
-                } else {
-                    message.innerText = json['errors'];
-                }
-            })
-    }
-
-    removeHabitRecord(e) {
-        e.preventDefault();
-
-        const timeOfRecord = document.getElementById("habitEditRecord" + this._id).value;
-        const habitEditRecordsSelect = document.getElementById("habitEditRecord" + this._id);
-        let deleteRecordConfig = {
-            method: 'delete',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": "Bearer " + this._user._authToken
-            },
-            body: JSON.stringify({
-                'habit_id': this._id,
-                'user_id': this._user.id,
-                "time_of_record": timeOfRecord,
-            })
-
-        }
-        const habitRecordToDelete = HabitRecord.all.find(record => {
-            if (record.user_id == this._user.id &&
-                record.habit_id == this._id &&
-                record.timeOfRecord == timeOfRecord) {
-                return record;
-            }
-        })
-        console.log(habitRecordToDelete);
-        fetchJSON(`${BACKEND_URL}/habit_records/${habitRecordToDelete.id}`, deleteRecordConfig)
-            .then(json => {
-                if (json['status']) {
-                    const boxToRemove = document.querySelector("span#box" + json['id']);
-                    const habitRecordBoxesDiv = document.querySelector("div#habitRecordBoxes" + this._id);
-                    const habitRecordsOption = document.querySelector("option#timeRecorded" + json['id']);
-                    habitRecordBoxesDiv.removeChild(boxToRemove);
-                    habitEditRecordsSelect.removeChild(habitRecordsOption);
-                }
-            })
-    }
-
     renderHabit() {
         console.log(">>>renderHabit()")
 
@@ -537,6 +453,7 @@ class Habit {
         habitRecordsRow.style.visibility = "hidden";
         habitRecordsRow.style.display = "none";
 
+        debugger
         const habitRecordsEmptyCell = document.createElement("div");
         habitRecordsEmptyCell.setAttribute("class", "habit-cell");
 
@@ -554,12 +471,11 @@ class Habit {
         habitRecordsSubmitDateInput.id = "habitRecordDateInput" + this._id;
 
         const habitRecordsSubmitDateBtn = document.createElement("button");
-        //habitRecordsSubmitDateBtn.id = 'submitRecHabit' + this._id;
-        habitRecordsSubmitDateBtn.setAttribute("id", "submitRecHabit" + this._id);
+        habitRecordsSubmitDateBtn.id = 'submitRecHabit' + this._id;
+        //habitRecordsSubmitDateBtn.setAttribute("id", "submitRecHabit" + this._id);
         habitRecordsSubmitDateBtn.value = "submit";
         habitRecordsSubmitDateBtn.name = "submit";
         habitRecordsSubmitDateBtn.innerText = "submit";
-
 
         const habitEditRecordsSelect = document.createElement("select");
         habitEditRecordsSelect.setAttribute("display", "inline");
@@ -583,10 +499,20 @@ class Habit {
         habitTable.appendChild(habitRecordsRow);
         arrowCell.addEventListener("click", habitMarkoff);
         habitRecordsSubmitDateBtn.addEventListener("click", () => {
+
+
             HabitRecord.handleNewRecord(this);
         })
         habitRemoveRecordsBtn.addEventListener("click", () => {
-            HabitRecord.handleDeleteRecord(this);
+            console.log("Remove Records Clicked");
+            const habitEditRecordsSelect = document.querySelector("select#habitEditRecord" + this.id);
+            const all = habitEditRecordsSelect.querySelectorAll("option");
+            const recordElement = Array.from(all).find(option => {
+                return option.value == habitEditRecordsSelect.value;
+            }
+
+            )
+            HabitRecord.handleDeleteRecord(recordElement);
         });
 
 

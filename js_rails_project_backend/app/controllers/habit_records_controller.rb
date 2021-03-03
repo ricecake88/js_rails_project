@@ -22,7 +22,7 @@ class HabitRecordsController < ApplicationController
             else
                 habit_record = HabitRecord.new(habit_record_params)
                 if habit_record.save!
-                    render json: {status: true, habit: habit_record}
+                    render json: {status: true, record: habit_record}
                 else
                     render json: {status: false, errors: habit.errors.full_messages.push("Error, could not be saved.")}
                 end

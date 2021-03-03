@@ -36,7 +36,7 @@ class HabitsController < ApplicationController
             render json: {status: false}
         else
             habit = Habit.find(params[:id])
-            if habit.update(:name => params[:name])
+            if habit.update(habit_params)
                 render json: {status: true, habit: habit}
             end
         end
@@ -53,6 +53,6 @@ class HabitsController < ApplicationController
 
     private
     def habit_params
-        params.require(:habit).permit(:name, :frequency_mode, :user_id)
+        params.require(:habit).permit(:name, :frequency_mode, :streak_level, :streak_counter, :user_id)
     end
 end
