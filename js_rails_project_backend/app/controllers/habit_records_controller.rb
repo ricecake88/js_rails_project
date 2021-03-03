@@ -6,12 +6,8 @@ class HabitRecordsController < ApplicationController
         unless logged_in?
             render json: { message: "Error not logged in"}
         else
-            if params[:range] == "all"
-                records = HabitRecord.where(:habit_id => params[:habit_id])
-            elsif params[:range] == "last7"
-                records = HabitRecord.records(params)
-            end
-            render json: { status: true, record: records, range: params[:range], time: 1.week.ago.to_date}
+            records = HabitRecord.records(params, @current_user.id)
+            render json: { status: true, record: records, range: params[:range], time: 1.week.ago.to_date, user: @current_user}
         end
     end
 
@@ -28,7 +24,7 @@ class HabitRecordsController < ApplicationController
                 if habit_record.save!
                     render json: {status: true, habit: habit_record}
                 else
-                    render json: {status: false, message: "Error, could not be saved."}
+                    render json: {status: false, errors: habit.errors.full_messages.push("Error, could not be saved.")}
                 end
             end
         end
