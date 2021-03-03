@@ -144,7 +144,7 @@ class HabitRecord {
 
     static renderNewRecord(json, habit) {
         const records = document.createElement("p");
-        const message = document.getElementById("message");
+        const error = document.getElementById("error");
         const habitRecordBoxesDiv = document.getElementById("habitRecordBoxes" + habit.id)
         if (json['status'] == true) {
             records.innerText = json['habit']['time_of_record'];
@@ -162,7 +162,9 @@ class HabitRecord {
             optionRecord.id = "timeRecorded" + json['habit']['id'];
             habitEditRecordsSelect.appendChild(optionRecord);
         } else {
-            message.innerText = json['errors'];
+            console.log("renderNewRecord");
+            console.log(json);
+            error.innerText = json['error'];
         }
     }
 
