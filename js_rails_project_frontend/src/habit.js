@@ -29,16 +29,31 @@ class Habit {
     }
     createHabitNameSpan(habit) {
         console.log(">>>>>createHabitNameSpan");
-        console.log(habit);
         let mainHabitSpan = document.createElement("span");
         mainHabitSpan.contentEditable = true;
         mainHabitSpan.setAttribute("id", "habitNameSpan" + habit._id);
         mainHabitSpan.innerText = habit._name;
         console.log(mainHabitSpan);
         mainHabitSpan.addEventListener("dblclick", (e) => {
-            habit.toggleEditNameTest(e, habit)
+            habit.toggleEditName(e, habit)
         })
         return mainHabitSpan;
+    }
+
+    createHabitFreqSpan(habit) {
+        console.log("createHabitFreqSpan")
+        let habitFreqModeSpan = document.createElement("span");
+        habitFreqModeSpan.contentEditable = true;
+        habitFreqModeSpan.setAttribute("id", "habitFreqModeSpan" + habit._id);
+        habitFreqModeSpan.innerText = habit._frequency_mode;
+        habitFreqModeSpan.addEventListener("dblclick", (e) => {
+            habit.toggleEdit(e, habit)}
+        )
+        return habitFreqModeSpan;
+    }
+
+    createHabitColorSpan(habit) {
+        console.log("createHabitColorSpan")
     }
 
     static createCfgAdd(user, habit) {
@@ -153,7 +168,180 @@ class Habit {
             })
     }
 
-    toggleEditNameTest(e, habit) {
+    updateFreqMode(e, habitCell) {
+        e.preventDefault();
+        console.log(e.target);
+        console.log(this);
+        let value = document.querySelector("select#habitFreqModeSpan" + this._id).value;
+        let editConfig = {
+            method: 'put',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": "Bearer " + this._user.authToken
+            },
+            body: JSON.stringify({
+                'habit_id': this._id,
+                'name': this._name,
+                'streak_level': this._streak_level,
+                'streak_counter': this._streak_counter,
+                'frequency_mode': value,
+                'user_id': this._user.id
+            })
+        }
+        fetchJSON(`${BACKEND_URL}/habits/${this._id}`, editConfig)
+            .then(json => {
+                console.log(json);
+                this._frequency_mode = json['habit']['frequency_mode'];
+                const textAgain = this.createHabitFreqSpan(this);
+                habitCell.innerHTML = "";
+                habitCell.appendChild(textAgain);
+                //value = "";
+            })
+    }
+
+    toggleEdit(e, habit) {
+        console.log("Double Click in Toggle Edit");
+        e.preventDefault();
+        const habitCell = e.target.parentNode;
+        habitCell.innerHTML = "";
+        switch(e.target.id) {
+            case `habitNameSpan${habit._id}`: {
+                let inputElement = document.createElement("input");
+                inputElement.setAttribute("value", habit._name);
+                inputElement.setAttribute("id", "habitNameSpan" + habit._id);
+                habitCell.appendChild(inputElement);
+
+                inputElement.focus();
+                inputElement.onblur = (e) => {
+                    e.preventDefault();
+                    value = document.querySelector("input#habitNameSpan" + this._id).value;
+                    let editConfig = {
+                        method: 'put',
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json",
+                            "Authorization": "Bearer " + this._user.authToken
+                        },
+                        body: JSON.stringify({
+                            'habit_id': this._id,
+                            'name': value,
+                            'streak_level': this._streak_level,
+                            'streak_counter': this._streak_counter,
+                            'frequency_mode': this._frequency_mode,
+                            'user_id': this._user.id
+                        })
+                    }
+                    fetchJSON(`${BACKEND_URL}/habits/${this._id}`, editConfig)
+                        .then(json => {
+                            this._name = json['habit']['name'];
+                            const textAgain = habit.createHabitNameSpan(this);
+                            //habitCell.innerHTML = "";
+                            //value = "";
+                            habitCell.appendChild(textAgain);
+                        })
+
+
+                }
+                console.log(habitCell);
+            }
+            case `habitFreqModeSpan${habit._id}`:{
+                let selectElement = document.createElement("select");
+                selectElement.setAttribute("value", habit._name);
+                selectElement.setAttribute("id", "habitFreqModeSpan" + habit._id);
+                selectElement.innerHTML =
+                `
+                    <option value="Everyday">Everyday
+                    <option value="Every Other Day">Every Other Day
+                `
+                habitCell.appendChild(selectElement);
+
+                selectElement.focus();
+                selectElement.onblur = (e) => {
+                    this.updateFreqMode(e, habitCell);
+/*                     e.preventDefault();
+                    let value = document.querySelector("select#habitFreqModeSpan" + this._id).value;
+                    let editConfig = {
+                        method: 'put',
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json",
+                            "Authorization": "Bearer " + this._user.authToken
+                        },
+                        body: JSON.stringify({
+                            'habit_id': this._id,
+                            'name': this._name,
+                            'streak_level': this._streak_level,
+                            'streak_counter': this._streak_counter,
+                            'frequency_mode': value,
+                            'user_id': this._user.id
+                        })
+                    }
+                    fetchJSON(`${BACKEND_URL}/habits/${this._id}`, editConfig)
+                        .then(json => {
+                            console.log(json);
+                            this._frequency_mode = json['habit']['frequency_mode'];
+                            const textAgain = habit.createHabitFreqSpan(this);
+                            //habitCell.innerHTML = "";
+                            habitCell.appendChild(textAgain);
+                            //value = "";
+                        })*/
+                }
+                console.log(habitCell);
+            }
+
+        }
+        if (e.target.id === "habitNameSpan" + habit._id) {
+            //const id = parseInt(e.target.id.match(/[0-9]+/)[0])
+            //console.log(id);
+            console.log("Removing:");
+            console.log("\t");
+            console.log(e.target);
+            habitCell.innerHTML = "";
+
+            let inputElement = document.createElement("input");
+            inputElement.setAttribute("value", habit._name);
+            inputElement.setAttribute("id", "habitNameSpan" + habit._id);
+            habitCell.appendChild(inputElement);
+
+            inputElement.focus();
+            inputElement.onblur = (e) => {
+                e.preventDefault();
+                value = document.querySelector("input#habitNameSpan" + this._id).value;
+                //habitCell.addEventListener("click", (e) => {
+                //    e.preventDefault();
+                //    if (!e.target.id.includes("habitNameSpan") && value) {
+                        let editConfig = {
+                            method: 'put',
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "Authorization": "Bearer " + this._user.authToken
+                            },
+                            body: JSON.stringify({
+                                'habit_id': this._id,
+                                'name': value,
+                                'user_id': this._user.id
+                            })
+                        }
+                        fetchJSON(`${BACKEND_URL}/habits/${this._id}`, editConfig)
+                            .then(json => {
+                                this._name = json['habit']['name'];
+                                const textAgain = habit.createHabitNameSpan(this);
+                                habitCell.innerHTML = "";
+                                value = "";
+                                habitCell.appendChild(textAgain);
+                            })
+
+
+                    }
+                //})
+            //}
+            console.log(habitCell);
+        }
+    }
+
+    toggleEditName(e, habit) {
         console.log(">>>>>Double Click");
         e.preventDefault();
         const habitCell = e.target.parentNode;
@@ -204,62 +392,6 @@ class Habit {
                     }
                 //})
             //}
-            console.log(habitCell);
-        }
-
-    }
-
-    toggleEditName(e, habit) {
-        console.log(">>>>>Double Click");
-        e.preventDefault();
-        const habitCell = e.target.parentNode;
-        let value = "";
-        if (e.target.id === "habitNameSpan" + habit._id) {
-            //const id = parseInt(e.target.id.match(/[0-9]+/)[0])
-            //console.log(id);
-            console.log("Removing:");
-            console.log("\t");
-            console.log(e.target);
-            habitCell.innerHTML = "";
-
-            let inputElement = document.createElement("input");
-            inputElement.setAttribute("value", habit._name);
-            inputElement.setAttribute("id", "habitNameSpan" + habit._id);
-            habitCell.appendChild(inputElement);
-
-            inputElement.focus();
-            inputElement.onblur = (e) => {
-                e.preventDefault();
-                value = document.querySelector("input#habitNameSpan" + this._id).value;
-                habitCell.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    if (!e.target.id.includes("habitNameSpan") && value) {
-                        let editConfig = {
-                            method: 'put',
-                            headers: {
-                                "Content-Type": "application/json",
-                                "Accept": "application/json",
-                                "Authorization": "Bearer " + this._user.authToken
-                            },
-                            body: JSON.stringify({
-                                'habit_id': this._id,
-                                'name': value,
-                                'user_id': this._user.id
-                            })
-                        }
-                        fetchJSON(`${BACKEND_URL}/habits/${this._id}`, editConfig)
-                            .then(json => {
-                                this._name = json['habit']['name'];
-                                const textAgain = habit.createHabitNameSpan(this);
-                                habitCell.innerHTML = "";
-                                value = "";
-                                habitCell.appendChild(textAgain);
-                            })
-
-
-                    }
-                })
-            }
             console.log(habitCell);
         }
 
@@ -375,9 +507,14 @@ class Habit {
         mainHabitCell.appendChild(mainHabitSpan);
 
 
-        let habitFreqMode = document.createElement("div");
-        habitFreqMode.setAttribute("class", "habit-cell");
-        habitFreqMode.innerText = this._frequency_mode;
+        let mainHabitFreqCell = document.createElement("div");
+        mainHabitFreqCell.setAttribute("class", "habit-cell");
+        mainHabitFreqCell.setAttribute("id", "freqCell" + this._id);
+
+        const mainHabitFreqSpan = this.createHabitFreqSpan(this);
+        mainHabitFreqSpan.innerText = this._frequency_mode;
+
+        mainHabitFreqCell.appendChild(mainHabitFreqSpan);
 
         let habitRemove = document.createElement("div");
         habitRemove.setAttribute("class", "habit-cell");
@@ -389,7 +526,7 @@ class Habit {
         habitRemoveDeleteBtn.addEventListener("click", this.deleteHabit.bind(this));
         habitRemove.appendChild(habitRemoveDeleteBtn);
 
-        mainHabitRow.append(arrowCell, mainHabitCell, habitFreqMode, habitRemove);
+        mainHabitRow.append(arrowCell, mainHabitCell, mainHabitFreqCell, habitRemove);
 
 
 
@@ -435,63 +572,7 @@ class Habit {
         habitRemoveRecordsBtn.innerText = "Remove";
 
         HabitRecord.handleHabitRecords(this);
-        //const habitRecordsConfigObject = this.createCfgGetAuth();
-    //
-        //fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${this._id}&range=all`, habitRecordsConfigObject)
-        //.then(json => {
-        //    /////TO-DO: FIX ERROR MESSAGES BEING RETURNED AND STATUSES
-        //    console.log(json);
-        //    if (json['status'] && json['record'] != undefined) {
-        //        json['record'].forEach(record => {
-        //            new HabitRecord(record['id'], record['habit_id'], record['user_id'], record['time_of_record'])
-        //            const box = document.createElement("span");
-        //            box.setAttribute("class", "box");
-        //            box.id = "box" + record['id'];
-        //            habitInfo.appendChild(box);
-//
-        //            const optionRecord = document.createElement("option");
-        //            optionRecord.setAttribute("value", record['time_of_record']);
-        //            optionRecord.setAttribute("id", "timeRecorded" + record['id'])
-        //            optionRecord.innerText = record['time_of_record'];
-        //            habitEditRecordsSelect.appendChild(optionRecord);
-//
-//
-        //        })
-        //    }
-        //})
-        /* need to restructure in creating boxes based on the date range I query, but show a separate query
-        of .. the past 30 days perhaps? */
-        //fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${this._id}&range=all`, habitRecordsConfigObject)
-        //.then(json => {
-        //    console.log(json);
-        //    if (json['status'] && json['record'] != undefined) {
-        //        json['record'].forEach(record => {
-        //            new HabitRecord(record['id'], record['habit_id'], record['user_id'], record['time_of_record'])
-//
-        //            const optionRecord = document.createElement("option");
-        //            optionRecord.setAttribute("value", record['time_of_record']);
-        //            optionRecord.setAttribute("id", "timeRecorded" + record['id'])
-        //            optionRecord.innerText = record['time_of_record'];
-        //            habitEditRecordsSelect.appendChild(optionRecord);
-//
-//
-        //        })
-        //    }
-        //})
-        //fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${this._id}&range=7`, habitRecordsConfigObject)
-        //    .then(json => {
-        //        console.log(json);
-        //        if (json['status'] && json['record'] != undefined) {
-        //            json['record'].forEach(record => {
-        //                //new HabitRecord(record['id'], record['habit_id'], record['user_id'], record['time_of_record'])
-        //                const box = document.createElement("span");
-        //                box.setAttribute("class", "box");
-        //                box.id = "box" + record['id'];
-        //                habitInfo.appendChild(box);
-        //            })
-        //        }
-        //    })
-//
+
         habitRecordsRow.append(habitRecordsEmptyCell);
         habitRecordsRow.appendChild(habitRecordBoxesDiv);
         habitRecordsSubmitDateRecordsCell.append(habitRecordsSubmitDateInput, habitRecordsSubmitDateBtn);
@@ -501,14 +582,9 @@ class Habit {
         habitTable.appendChild(mainHabitRow);
         habitTable.appendChild(habitRecordsRow);
         arrowCell.addEventListener("click", habitMarkoff);
-        //habitRecordsSubmitDateBtn.addEventListener("click", this.addHabitRecord.bind(this));
-        //habitRecordsSubmitDateBtn.addEventListener("click", () => {
-        //    HabitRecord.handleNewRecord(this);
-        //});
         habitRecordsSubmitDateBtn.addEventListener("click", () => {
             HabitRecord.handleNewRecord(this);
         })
-        //habitRemoveRecordsBtn.addEventListener("click", this.removeHabitRecord.bind(this));
         habitRemoveRecordsBtn.addEventListener("click", () => {
             HabitRecord.handleDeleteRecord(this);
         });
@@ -561,8 +637,8 @@ class Habit {
                 const createdHabit = new Habit(json['habit']['id'],
                     json['habit']['name'],
                     json['habit']['frequency_mode'],
-                    undefined,
-                    undefined,
+                    json['habit']['num_for_streak'],
+                    json['habit']['streak_counter'],
                     json['habit']['streak_level'],
                      user);
                 createdHabit.renderHabit();
