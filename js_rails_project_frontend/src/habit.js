@@ -453,30 +453,79 @@ class Habit {
         habitRecordsRow.style.visibility = "hidden";
         habitRecordsRow.style.display = "none";
 
-        debugger
+        //--- empty cell --//
         const habitRecordsEmptyCell = document.createElement("div");
         habitRecordsEmptyCell.setAttribute("class", "habit-cell");
 
+        //--cell with record boxes --//
         const habitRecordBoxesDiv = document.createElement("div");
         habitRecordBoxesDiv.setAttribute("class", "habit-cell");
         habitRecordBoxesDiv.id = "habitRecordBoxes" + this._id;
-        //habitInfo.innerHTML = "Last 7 Days:<br/>";
 
+        //--cell with to submit a record and remove a record --//
         const habitRecordsSubmitDateRecordsCell = document.createElement("div");
         habitRecordsSubmitDateRecordsCell.setAttribute("class", "habit-cell");
         habitRecordsSubmitDateRecordsCell.id = "habitRecordSubmitDateCell" + this._id;
 
+        //-- input element to enter a date --//
         const habitRecordsSubmitDateInput = document.createElement("input");
         habitRecordsSubmitDateInput.type = "date";
         habitRecordsSubmitDateInput.id = "habitRecordDateInput" + this._id;
 
         const habitRecordsSubmitDateBtn = document.createElement("button");
         habitRecordsSubmitDateBtn.id = 'submitRecHabit' + this._id;
-        //habitRecordsSubmitDateBtn.setAttribute("id", "submitRecHabit" + this._id);
         habitRecordsSubmitDateBtn.value = "submit";
         habitRecordsSubmitDateBtn.name = "submit";
         habitRecordsSubmitDateBtn.innerText = "submit";
 
+        const brElement = document.createElement("br");
+        //--filter record elements --//
+        const habitRecordsToRemoveSelect = document.createElement("select");
+        habitRecordsToRemoveSelect.setAttribute("display", "inline");
+        habitRecordsToRemoveSelect.setAttribute("name", "habitFilterRecordsToRemove");
+        habitRecordsToRemoveSelect.setAttribute("id", "habitFilterRecordsToRemove" + this._id);
+        //habitRecordsToRemoveSelect.innerHTML =
+        //`
+        //    <option name="last7" value="last7" selected>Last Seven Days
+        //    <option name="currentMonth" value="currentMonth">Current Month
+        //    <option name="currentYear" value="currentYear">Current Year
+        //    <option name="lastYear" value="lastYear">Last Year
+        //`
+
+        const habitRecordsFilterEmpty = document.createElement("option");
+        habitRecordsFilterEmpty.innerText = "Choose Range of Records";
+        habitRecordsFilterEmpty.value = "";
+        habitRecordsFilterEmpty.setAttribute("disabled", "");
+        habitRecordsFilterEmpty.setAttribute("selected", "");
+
+
+        const habitRecordsFilterLast7Days = document.createElement("option");
+        habitRecordsFilterLast7Days.value = "last7";
+        habitRecordsFilterLast7Days.innerText = "Last 7 Days";
+
+        const habitRecordsFilterCurrentMonth = document.createElement("option")
+        habitRecordsFilterCurrentMonth.value = "currentMonth";
+        habitRecordsFilterCurrentMonth.innerText = "Current Month";
+
+        const habitRecordsFilterLastMonth = document.createElement("option")
+        habitRecordsFilterLastMonth.value = "lastMonth";
+        habitRecordsFilterLastMonth.innerText = "Last Month";
+
+        const habitRecordsFilterCurrentYear = document.createElement("option")
+        habitRecordsFilterCurrentYear.value = "currentYear";
+        habitRecordsFilterCurrentYear.innerText = "Current Year";
+
+        const habitRecordsFilterLastYear = document.createElement("option")
+        habitRecordsFilterLastYear.value = "lastYear";
+        habitRecordsFilterLastYear.innerText = "Last Year"
+
+        habitRecordsToRemoveSelect.append(habitRecordsFilterEmpty,
+            habitRecordsFilterLast7Days, habitRecordsFilterCurrentMonth,
+            habitRecordsFilterLastMonth,
+            habitRecordsFilterCurrentYear, habitRecordsFilterLastYear)
+
+
+        //--records to remove --//
         const habitEditRecordsSelect = document.createElement("select");
         habitEditRecordsSelect.setAttribute("display", "inline");
         habitEditRecordsSelect.setAttribute("name", "habitEditRecord");
@@ -487,20 +536,21 @@ class Habit {
         habitRemoveRecordsBtn.setAttribute("name", "Remove");
         habitRemoveRecordsBtn.innerText = "Remove";
 
+        // THIS WILL ADD ALL RECORDS IN -- AND CREATE NEW INSTANCES
+        // MIGHT NEED TO USE THIS TO JUST ADD ALL NEW INSTANCES
         HabitRecord.handleHabitRecords(this);
 
         habitRecordsRow.append(habitRecordsEmptyCell);
         habitRecordsRow.appendChild(habitRecordBoxesDiv);
         habitRecordsSubmitDateRecordsCell.append(habitRecordsSubmitDateInput, habitRecordsSubmitDateBtn);
-        habitRecordsSubmitDateRecordsCell.append(habitEditRecordsSelect, habitRemoveRecordsBtn);
+        habitRecordsSubmitDateRecordsCell.append(brElement);
+        habitRecordsSubmitDateRecordsCell.append(habitRecordsToRemoveSelect, habitEditRecordsSelect, habitRemoveRecordsBtn);
         habitRecordsRow.appendChild(habitRecordsSubmitDateRecordsCell);
 
         habitTable.appendChild(mainHabitRow);
         habitTable.appendChild(habitRecordsRow);
         arrowCell.addEventListener("click", habitMarkoff);
         habitRecordsSubmitDateBtn.addEventListener("click", () => {
-
-
             HabitRecord.handleNewRecord(this);
         })
         habitRemoveRecordsBtn.addEventListener("click", () => {
@@ -514,7 +564,33 @@ class Habit {
             )
             HabitRecord.handleDeleteRecord(recordElement);
         });
-
+        habitRecordsToRemoveSelect.addEventListener("change", () => {
+            const habitEditRecordsSelect = document.getElementById("habitEditRecord" + this._id);
+            const config = HabitRecord.createGetRecordsConfig(this)
+            //DISPLAY BASED ON RANGE ONLY, DO NOT MODIFY DATABASES OR CLASS INSTANCES
+            fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${this._id}&range=${habitRecordsToRemoveSelect.value}`, config)
+            .then(json => {
+                if (json['status']) {
+                    habitEditRecordsSelect.innerHTML = "";
+                    if ((json['record'] === undefined) || (json['record'].length === 0)) {
+                        const optionRecord = document.createElement("option");
+                        optionRecord.innerText = "No Records";
+                        optionRecord.value = "";
+                        optionRecord.setAttribute("disabled", "");
+                        optionRecord.setAttribute("selected", "");
+                        habitEditRecordsSelect.appendChild(optionRecord);
+                    } else {
+                        json['record'].forEach(record => {
+                            const optionRecord = document.createElement("option");
+                            optionRecord.setAttribute("value", record['time_of_record']);
+                            optionRecord.setAttribute("id", "timeRecorded" + record['id'])
+                            optionRecord.innerText = record['time_of_record'];
+                            habitEditRecordsSelect.appendChild(optionRecord);
+                        })
+                    }
+                }
+            });
+        })
 
         console.log("Habit Table")
         console.log(habitTable);
