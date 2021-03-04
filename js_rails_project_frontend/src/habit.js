@@ -3,13 +3,14 @@ class Habit {
     static all = [];
 
     constructor(id = -1, name, frequency_mode = "Everyday", num_for_streak = 7, streak_counter = 0,
-        streak_level = "easy", user = null) {
+        streak_level = "easy", color = "pink", user = null) {
         this._id = id;
         this._name = name;
         this._frequency_mode = frequency_mode;
         this._num_for_streak = num_for_streak;
         this._streak_counter = streak_counter;
         this._streak_level = streak_level;
+        this._color = color;
         this._user = user;
         Habit.all.push(this);
     }
@@ -23,7 +24,6 @@ class Habit {
         this._id = num;
     }
 
-
     get user() {
         return this._user;
     }
@@ -35,7 +35,7 @@ class Habit {
         mainHabitSpan.innerText = habit._name;
         console.log(mainHabitSpan);
         mainHabitSpan.addEventListener("dblclick", (e) => {
-            habit.toggleEditName(e, habit)
+            habit.toggleEdit(e, habit)
         })
         return mainHabitSpan;
     }
@@ -200,50 +200,58 @@ class Habit {
             })
     }
 
+    updateHabitName(e, habitCell) {
+        e.preventDefault();
+        let editConfig = {
+            method: 'put',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": "Bearer " + this._user.authToken
+            },
+            body: JSON.stringify({
+                'habit_id': this._id,
+                'name': document.querySelector("input#habitNameSpan" + this._id).value,
+                'streak_level': this._streak_level,
+                'num_for_streak': this._num_for_streak,
+                'streak_counter': this._streak_counter,
+                'frequency_mode': this._frequency_mode,
+                'color': this._color,
+                'user_id': this._user.id
+            })
+        }
+        fetchJSON(`${BACKEND_URL}/habits/${this._id}`, editConfig)
+            .then(json => {
+                this._name = json['habit']['name'];
+                const textAgain = this.createHabitNameSpan(this);
+                habitCell.innerHTML = "";
+                habitCell.appendChild(textAgain);
+            })
+    }
+
     toggleEdit(e, habit) {
         console.log("Double Click in Toggle Edit");
         e.preventDefault();
         const habitCell = e.target.parentNode;
         habitCell.innerHTML = "";
         switch(e.target.id) {
-            case `habitNameSpan${habit._id}`: {
+            case `habitNameSpan${this._id}`: {
                 let inputElement = document.createElement("input");
-                inputElement.setAttribute("value", habit._name);
-                inputElement.setAttribute("id", "habitNameSpan" + habit._id);
+                inputElement.setAttribute("value", this._name);
+                inputElement.setAttribute("id", "habitNameSpan" + this._id);
                 habitCell.appendChild(inputElement);
 
                 inputElement.focus();
                 inputElement.onblur = (e) => {
-                    e.preventDefault();
-                    value = document.querySelector("input#habitNameSpan" + this._id).value;
-                    let editConfig = {
-                        method: 'put',
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Accept": "application/json",
-                            "Authorization": "Bearer " + this._user.authToken
-                        },
-                        body: JSON.stringify({
-                            'habit_id': this._id,
-                            'name': value,
-                            'streak_level': this._streak_level,
-                            'streak_counter': this._streak_counter,
-                            'frequency_mode': this._frequency_mode,
-                            'user_id': this._user.id
-                        })
-                    }
-                    fetchJSON(`${BACKEND_URL}/habits/${this._id}`, editConfig)
-                        .then(json => {
-                            this._name = json['habit']['name'];
-                            const textAgain = habit.createHabitNameSpan(this);
-                            //habitCell.innerHTML = "";
-                            //value = "";
-                            habitCell.appendChild(textAgain);
-                        })
-
-
+                    this.updateHabitName(e, habitCell);
                 }
+                inputElement.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter") {
+                        this.updateHabitName(e, habitCell);
+                    }
+                })
                 console.log(habitCell);
+                break;
             }
             case `habitFreqModeSpan${habit._id}`:{
                 let selectElement = document.createElement("select");
@@ -259,167 +267,42 @@ class Habit {
                 selectElement.focus();
                 selectElement.onblur = (e) => {
                     this.updateFreqMode(e, habitCell);
-/*                     e.preventDefault();
-                    let value = document.querySelector("select#habitFreqModeSpan" + this._id).value;
-                    let editConfig = {
-                        method: 'put',
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Accept": "application/json",
-                            "Authorization": "Bearer " + this._user.authToken
-                        },
-                        body: JSON.stringify({
-                            'habit_id': this._id,
-                            'name': this._name,
-                            'streak_level': this._streak_level,
-                            'streak_counter': this._streak_counter,
-                            'frequency_mode': value,
-                            'user_id': this._user.id
-                        })
-                    }
-                    fetchJSON(`${BACKEND_URL}/habits/${this._id}`, editConfig)
-                        .then(json => {
-                            console.log(json);
-                            this._frequency_mode = json['habit']['frequency_mode'];
-                            const textAgain = habit.createHabitFreqSpan(this);
-                            //habitCell.innerHTML = "";
-                            habitCell.appendChild(textAgain);
-                            //value = "";
-                        })*/
                 }
                 console.log(habitCell);
+                break;
             }
+            default:
+                console.log("No Toggle");
+                break;
 
         }
-        if (e.target.id === "habitNameSpan" + habit._id) {
-            //const id = parseInt(e.target.id.match(/[0-9]+/)[0])
-            //console.log(id);
-            console.log("Removing:");
-            console.log("\t");
-            console.log(e.target);
-            habitCell.innerHTML = "";
-
-            let inputElement = document.createElement("input");
-            inputElement.setAttribute("value", habit._name);
-            inputElement.setAttribute("id", "habitNameSpan" + habit._id);
-            habitCell.appendChild(inputElement);
-
-            inputElement.focus();
-            inputElement.onblur = (e) => {
-                e.preventDefault();
-                value = document.querySelector("input#habitNameSpan" + this._id).value;
-                //habitCell.addEventListener("click", (e) => {
-                //    e.preventDefault();
-                //    if (!e.target.id.includes("habitNameSpan") && value) {
-                        let editConfig = {
-                            method: 'put',
-                            headers: {
-                                "Content-Type": "application/json",
-                                "Accept": "application/json",
-                                "Authorization": "Bearer " + this._user.authToken
-                            },
-                            body: JSON.stringify({
-                                'habit_id': this._id,
-                                'name': value,
-                                'user_id': this._user.id
-                            })
-                        }
-                        fetchJSON(`${BACKEND_URL}/habits/${this._id}`, editConfig)
-                            .then(json => {
-                                this._name = json['habit']['name'];
-                                const textAgain = habit.createHabitNameSpan(this);
-                                habitCell.innerHTML = "";
-                                value = "";
-                                habitCell.appendChild(textAgain);
-                            })
-
-
-                    }
-                //})
-            //}
-            console.log(habitCell);
-        }
-    }
-
-    toggleEditName(e, habit) {
-        console.log(">>>>>Double Click");
-        e.preventDefault();
-        const habitCell = e.target.parentNode;
-        let value = "";
-        if (e.target.id === "habitNameSpan" + habit._id) {
-            //const id = parseInt(e.target.id.match(/[0-9]+/)[0])
-            //console.log(id);
-            console.log("Removing:");
-            console.log("\t");
-            console.log(e.target);
-            habitCell.innerHTML = "";
-
-            let inputElement = document.createElement("input");
-            inputElement.setAttribute("value", habit._name);
-            inputElement.setAttribute("id", "habitNameSpan" + habit._id);
-            habitCell.appendChild(inputElement);
-
-            inputElement.focus();
-            inputElement.onblur = (e) => {
-                e.preventDefault();
-                value = document.querySelector("input#habitNameSpan" + this._id).value;
-                //habitCell.addEventListener("click", (e) => {
-                //    e.preventDefault();
-                //    if (!e.target.id.includes("habitNameSpan") && value) {
-                        let editConfig = {
-                            method: 'put',
-                            headers: {
-                                "Content-Type": "application/json",
-                                "Accept": "application/json",
-                                "Authorization": "Bearer " + this._user.authToken
-                            },
-                            body: JSON.stringify({
-                                'habit_id': this._id,
-                                'name': value,
-                                'user_id': this._user.id
-                            })
-                        }
-                        fetchJSON(`${BACKEND_URL}/habits/${this._id}`, editConfig)
-                            .then(json => {
-                                this._name = json['habit']['name'];
-                                const textAgain = habit.createHabitNameSpan(this);
-                                habitCell.innerHTML = "";
-                                value = "";
-                                habitCell.appendChild(textAgain);
-                            })
-
-
-                    }
-                //})
-            //}
-            console.log(habitCell);
-        }
-
     }
 
     renderHabit() {
         console.log(">>>renderHabit()")
 
-        let habitTable = document.querySelector("div.habit-table-container");
+        const habitTable = document.querySelector("div.habit-table-container");
 
-        let mainHabitRow = document.createElement("div");
+        // ---- Row where main details for habits are ---//
+        const mainHabitRow = document.createElement("div");
         mainHabitRow.setAttribute("class", "habit-row");
         mainHabitRow.setAttribute("id", "habitRow" + this._id);
 
-        let arrowCell = document.createElement("div");
-        arrowCell.setAttribute("class", "habit-cell");
-        arrowCell.setAttribute("id", "habitArrow" + this._id);
+            const arrowCell = document.createElement("div");
+            arrowCell.setAttribute("class", "habit-cell");
+            arrowCell.setAttribute("id", "habitArrow" + this._id);
 
-        let arrow = document.createElement("img");
-        arrow.src = "http://www.clker.com/cliparts/9/1/9/a/1369857928521711478blue_arrow_down.png";
-        arrow.setAttribute("class", "arrow")
-        arrowCell.appendChild(arrow);
+                const arrow = document.createElement("img");
+                arrow.src = "http://www.clker.com/cliparts/9/1/9/a/1369857928521711478blue_arrow_down.png";
+                arrow.setAttribute("class", "arrow")
+                arrowCell.appendChild(arrow);
 
+        //-- Habit Name Cell, editable --//
         let mainHabitCell = document.createElement("div");
         mainHabitCell.setAttribute("class", "habit-cell");
         mainHabitCell.setAttribute("id", "habitCell" + this._id);
 
-        const mainHabitSpan = this.createHabitNameSpan(this);
+            const mainHabitSpan = this.createHabitNameSpan(this);
         mainHabitCell.appendChild(mainHabitSpan);
 
 
@@ -484,45 +367,47 @@ class Habit {
         habitRecordsToRemoveSelect.setAttribute("display", "inline");
         habitRecordsToRemoveSelect.setAttribute("name", "habitFilterRecordsToRemove");
         habitRecordsToRemoveSelect.setAttribute("id", "habitFilterRecordsToRemove" + this._id);
-        //habitRecordsToRemoveSelect.innerHTML =
-        //`
-        //    <option name="last7" value="last7" selected>Last Seven Days
-        //    <option name="currentMonth" value="currentMonth">Current Month
-        //    <option name="currentYear" value="currentYear">Current Year
-        //    <option name="lastYear" value="lastYear">Last Year
-        //`
+        habitRecordsToRemoveSelect.innerHTML =
+        `
+            <option value="" disabled selected>Choose Range of Records
+            <option name="last7" value="last7">Last Seven Days
+            <option name="currentMonth" value="currentMonth">Current Month
+            <option name="lastMonth" value="lastMonth">Last Month
+            <option name="currentYear" value="currentYear">Current Year
+            <option name="lastYear" value="lastYear">Last Year
+        `
 
-        const habitRecordsFilterEmpty = document.createElement("option");
-        habitRecordsFilterEmpty.innerText = "Choose Range of Records";
-        habitRecordsFilterEmpty.value = "";
-        habitRecordsFilterEmpty.setAttribute("disabled", "");
-        habitRecordsFilterEmpty.setAttribute("selected", "");
-
-
-        const habitRecordsFilterLast7Days = document.createElement("option");
-        habitRecordsFilterLast7Days.value = "last7";
-        habitRecordsFilterLast7Days.innerText = "Last 7 Days";
-
-        const habitRecordsFilterCurrentMonth = document.createElement("option")
-        habitRecordsFilterCurrentMonth.value = "currentMonth";
-        habitRecordsFilterCurrentMonth.innerText = "Current Month";
-
-        const habitRecordsFilterLastMonth = document.createElement("option")
-        habitRecordsFilterLastMonth.value = "lastMonth";
-        habitRecordsFilterLastMonth.innerText = "Last Month";
-
-        const habitRecordsFilterCurrentYear = document.createElement("option")
-        habitRecordsFilterCurrentYear.value = "currentYear";
-        habitRecordsFilterCurrentYear.innerText = "Current Year";
-
-        const habitRecordsFilterLastYear = document.createElement("option")
-        habitRecordsFilterLastYear.value = "lastYear";
-        habitRecordsFilterLastYear.innerText = "Last Year"
-
-        habitRecordsToRemoveSelect.append(habitRecordsFilterEmpty,
-            habitRecordsFilterLast7Days, habitRecordsFilterCurrentMonth,
-            habitRecordsFilterLastMonth,
-            habitRecordsFilterCurrentYear, habitRecordsFilterLastYear)
+        //const habitRecordsFilterEmpty = document.createElement("option");
+        //habitRecordsFilterEmpty.innerText = "Choose Range of Records";
+        //habitRecordsFilterEmpty.value = "";
+        //habitRecordsFilterEmpty.setAttribute("disabled", "");
+        //habitRecordsFilterEmpty.setAttribute("selected", "");
+//
+//
+        //const habitRecordsFilterLast7Days = document.createElement("option");
+        //habitRecordsFilterLast7Days.value = "last7";
+        //habitRecordsFilterLast7Days.innerText = "Last 7 Days";
+//
+        //const habitRecordsFilterCurrentMonth = document.createElement("option")
+        //habitRecordsFilterCurrentMonth.value = "currentMonth";
+        //habitRecordsFilterCurrentMonth.innerText = "Current Month";
+//
+        //const habitRecordsFilterLastMonth = document.createElement("option")
+        //habitRecordsFilterLastMonth.value = "lastMonth";
+        //habitRecordsFilterLastMonth.innerText = "Last Month";
+//
+        //const habitRecordsFilterCurrentYear = document.createElement("option")
+        //habitRecordsFilterCurrentYear.value = "currentYear";
+        //habitRecordsFilterCurrentYear.innerText = "Current Year";
+//
+        //const habitRecordsFilterLastYear = document.createElement("option")
+        //habitRecordsFilterLastYear.value = "lastYear";
+        //habitRecordsFilterLastYear.innerText = "Last Year"
+//
+        //habitRecordsToRemoveSelect.append(habitRecordsFilterEmpty,
+        //    habitRecordsFilterLast7Days, habitRecordsFilterCurrentMonth,
+        //    habitRecordsFilterLastMonth,
+        //    habitRecordsFilterCurrentYear, habitRecordsFilterLastYear)
 
 
         //--records to remove --//
@@ -621,6 +506,24 @@ class Habit {
                     <option name="Hard" value="Hard">Hard
                 </select>
                 <br/>
+
+                <label for="habitColor">Habit Color:</label>
+                <select name="habitColor" id="habitColor">
+                    <option name="pink" value="pink" selected>pink
+                    <option name="red" value="red" >red
+                    <option name="blue" value="blue">blue
+                    <option name="lightblue" value="light blue">light blue
+                    <option name="green" value="green">green
+                    <option name="black" value="black">black
+                    <option name="purple" value="purple">pink
+                    <option name="orange" value="orange">orange
+                    <option name="yellow" value="yellow">yellow
+                    <option name="violet" value="violet">violet
+                </select>
+
+                <span class="box" /></span>
+                <br/>
+
                 <button type="submit" name="submitNewHabit" value="submitNewHabit">Submit
             </form>
         `
@@ -642,7 +545,8 @@ class Habit {
                     json['habit']['num_for_streak'],
                     json['habit']['streak_counter'],
                     json['habit']['streak_level'],
-                     user);
+                    json['habit']['color'],
+                    user);
                 createdHabit.renderHabit();
             } else {
                 document.getElementById("error").innerText = json['errors'];
@@ -666,22 +570,9 @@ class Habit {
 
         if ((json['status'] == true) && (json['habits'])) {
             json['habits'].forEach(x => {
-
-                let habit = new Habit(x.id, x.name, x.frequency_mode, 7, 0, x.streak_level, user);
+                let habit = new Habit(x.id, x.name, x.frequency_mode, x.num_for_streak, x.streak_counter,
+                    x.streak_level, x.color, user);
                 habit.renderHabit(user);
-/*                 console.log("Does this ever get here?");
-                const buttons = document.querySelectorAll("button");
-                buttons.forEach(button =>
-                    {
-                        button.addEventListener("click", () => {
-                            if (button.id.includes("habitRemoveRecordsBtn")) {
-                                button.addEventListener("click"), this.removeHabitRecord.bind(this);
-
-                            }
-                        })
-                    }
-                )
-*/
             })
         } else {
             if (json['message']) {
