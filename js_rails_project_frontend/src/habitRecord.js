@@ -168,7 +168,7 @@ class HabitRecord {
         } else {
             console.log("renderNewRecord");
             console.log(json);
-            error.innerText = json['error'];
+            error.innerText = json['errors'];
         }
     }
 
