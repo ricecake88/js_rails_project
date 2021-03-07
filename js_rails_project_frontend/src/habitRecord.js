@@ -193,7 +193,6 @@ class HabitRecord {
             }
             renderAllHabits(habit.user);
         } else {
-            debugger
             error.innerText = json['errors'];
         }
     }
@@ -218,7 +217,7 @@ class HabitRecord {
             const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + this.habit.id);
             const habitRecordsOption = document.querySelector("option#timeRecorded" + this.id);
             const boxToRemove = document.querySelector("span#box" + this.id);
-            const record = HabitRecord.all.indexOf(this);
+            const record = HabitRecord.all[HabitRecord.all.indexOf(this)];
 
             // remove record from Habit Records
             HabitRecord.all.splice(record,1)
