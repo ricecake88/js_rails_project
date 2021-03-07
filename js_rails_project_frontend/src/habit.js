@@ -211,6 +211,9 @@ class Habit {
                     this._color = json['habit']['color'];
                     const textAgain = document.getElementById("editColorBox" + json['habit']['id'])
                     textAgain.style.backgroundColor = this._color;
+                    const recordsTD = document.getElementById("recordsTD" + json['habit']['id'])
+                    const boxes = recordsTD.getElementsByClassName("boxAll");
+                    Array.from(boxes).forEach(function(box) {box.style.backgroundColor = json['habit']['color']});
                 }
             })
     }
@@ -268,182 +271,6 @@ class Habit {
         }
     }
 
-    renderHabit() {
-        console.log(">>>renderHabit()")
-
-        const habitTable = document.querySelector("div.habit-table-container");
-
-        // ---- Row where main details for habits are ---//
-        const mainHabitRow = document.createElement("div");
-        mainHabitRow.setAttribute("class", "habit-row");
-        mainHabitRow.setAttribute("id", "habitRow" + this._id);
-
-            const arrowCell = document.createElement("div");
-            arrowCell.setAttribute("class", "habit-cell");
-            arrowCell.setAttribute("id", "habitArrow" + this._id);
-
-                const arrow = document.createElement("img");
-                arrow.src = "http://www.clker.com/cliparts/9/1/9/a/1369857928521711478blue_arrow_down.png";
-                arrow.setAttribute("class", "arrow")
-                arrowCell.appendChild(arrow);
-
-        //-- Habit Name Cell, editable --//
-        let mainHabitCell = document.createElement("div");
-        mainHabitCell.setAttribute("class", "habit-cell");
-        mainHabitCell.setAttribute("id", "habitCell" + this._id);
-
-            const mainHabitSpan = this.createHabitNameSpan(this);
-        mainHabitCell.appendChild(mainHabitSpan);
-
-
-        let mainHabitFreqCell = document.createElement("div");
-        mainHabitFreqCell.setAttribute("class", "habit-cell");
-        mainHabitFreqCell.setAttribute("id", "freqCell" + this._id);
-
-        const mainHabitFreqSpan = this.createHabitFreqSpan(this);
-        mainHabitFreqSpan.innerText = this._frequency_mode;
-
-        mainHabitFreqCell.appendChild(mainHabitFreqSpan);
-
-        let habitRemove = document.createElement("div");
-        habitRemove.setAttribute("class", "habit-cell");
-
-        let habitRemoveDeleteBtn = document.createElement("button");
-        habitRemoveDeleteBtn.setAttribute("class", "btn-delete");
-        habitRemoveDeleteBtn.id = "habitDeleteBtn" + this._id;
-        habitRemoveDeleteBtn.innerText = "X";
-        habitRemoveDeleteBtn.addEventListener("click", this.deleteHabit.bind(this));
-        habitRemoveDeleteBtn.addEventListener("click", renderAllHabits(this._user));
-        habitRemove.appendChild(habitRemoveDeleteBtn);
-
-        mainHabitRow.append(arrowCell, mainHabitCell, mainHabitFreqCell, habitRemove);
-
-
-
-        // -------------------- second row  -------------------//
-        const habitRecordsRow = document.createElement("div");
-        habitRecordsRow.setAttribute("class", "habit-row");
-        habitRecordsRow.setAttribute("id", "habitRecordsControl" + this._id)
-        habitRecordsRow.style.visibility = "hidden";
-        habitRecordsRow.style.display = "none";
-
-        //--- empty cell --//
-        const habitRecordsEmptyCell = document.createElement("div");
-        habitRecordsEmptyCell.setAttribute("class", "habit-cell");
-
-        //--cell with record boxes --//
-        const habitRecordBoxesDiv = document.createElement("div");
-        habitRecordBoxesDiv.setAttribute("class", "habit-cell");
-        habitRecordBoxesDiv.id = "habitRecordBoxes" + this._id;
-
-        const pElement = document.createElement("p");
-        pElement.innerText = "Last Seven Days"
-        habitRecordBoxesDiv.append(pElement);
-
-        //--cell with to submit a record and remove a record --//
-        const habitRecordsSubmitDateRecordsCell = document.createElement("div");
-        habitRecordsSubmitDateRecordsCell.setAttribute("class", "habit-cell");
-        habitRecordsSubmitDateRecordsCell.id = "habitRecordSubmitDateCell" + this._id;
-
-        //-- input element to enter a date --//
-        const habitRecordsSubmitDateInput = document.createElement("input");
-        habitRecordsSubmitDateInput.type = "date";
-        habitRecordsSubmitDateInput.id = "habitRecordDateInput" + this._id;
-
-        const habitRecordsSubmitDateBtn = document.createElement("button");
-        habitRecordsSubmitDateBtn.id = 'submitRecHabit' + this._id;
-        habitRecordsSubmitDateBtn.value = "submit";
-        habitRecordsSubmitDateBtn.name = "submit";
-        habitRecordsSubmitDateBtn.innerText = "submit";
-
-        const brElement = document.createElement("br");
-        //--filter record elements --//
-        const habitRecordsToRemoveSelect = document.createElement("select");
-        habitRecordsToRemoveSelect.setAttribute("display", "inline");
-        habitRecordsToRemoveSelect.setAttribute("name", "habitFilterRecordsToRemove");
-        habitRecordsToRemoveSelect.setAttribute("id", "habitFilterRecordsToRemove" + this._id);
-        habitRecordsToRemoveSelect.innerHTML =
-        `
-            <option value="" disabled selected>Choose Range of Records
-            <option name="last7" value="last7">Last Seven Days
-            <option name="currentMonth" value="currentMonth">Current Month
-            <option name="lastMonth" value="lastMonth">Last Month
-            <option name="currentYear" value="currentYear">Current Year
-            <option name="lastYear" value="lastYear">Last Year
-        `
-
-        //--records to remove --//
-        const habitEditRecordsSelect = document.createElement("select");
-        habitEditRecordsSelect.setAttribute("display", "inline");
-        habitEditRecordsSelect.setAttribute("name", "habitEditRecord");
-        habitEditRecordsSelect.setAttribute("id", "habitEditRecord" + this._id);
-
-        const habitRemoveRecordsBtn = document.createElement("button");
-        habitRemoveRecordsBtn.setAttribute("value", "Remove");
-        habitRemoveRecordsBtn.setAttribute("name", "Remove");
-        habitRemoveRecordsBtn.innerText = "Remove";
-
-        // THIS WILL ADD ALL RECORDS IN -- AND CREATE NEW INSTANCES
-        // MIGHT NEED TO USE THIS TO JUST ADD ALL NEW INSTANCES
-        HabitRecord.handleHabitRecords(this);
-
-        habitRecordsRow.append(habitRecordsEmptyCell);
-        habitRecordsRow.appendChild(habitRecordBoxesDiv);
-        habitRecordsSubmitDateRecordsCell.append(habitRecordsSubmitDateInput, habitRecordsSubmitDateBtn);
-        habitRecordsSubmitDateRecordsCell.append(brElement);
-        habitRecordsSubmitDateRecordsCell.append(habitRecordsToRemoveSelect, habitEditRecordsSelect, habitRemoveRecordsBtn);
-        habitRecordsRow.appendChild(habitRecordsSubmitDateRecordsCell);
-
-        habitTable.appendChild(mainHabitRow);
-        habitTable.appendChild(habitRecordsRow);
-        arrowCell.addEventListener("click", toggleRecordsControl);
-        habitRecordsSubmitDateBtn.addEventListener("click", () => {
-            HabitRecord.handleNewRecord(this);
-        })
-        habitRemoveRecordsBtn.addEventListener("click", () => {
-            console.log("Remove Records Clicked");
-            const habitEditRecordsSelect = document.querySelector("select#habitEditRecord" + this.id);
-            const all = habitEditRecordsSelect.querySelectorAll("option");
-            const recordElement = Array.from(all).find(option => {
-                return option.value == habitEditRecordsSelect.value;
-            }
-
-            )
-            HabitRecord.handleDeleteRecord(recordElement);
-        });
-        habitRecordsToRemoveSelect.addEventListener("change", () => {
-            const habitEditRecordsSelect = document.getElementById("habitEditRecord" + this._id);
-            const config = HabitRecord.createGetRecordsConfig(this)
-            //DISPLAY BASED ON RANGE ONLY, DO NOT MODIFY DATABASES OR CLASS INSTANCES
-            fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${this._id}&range=${habitRecordsToRemoveSelect.value}`, config)
-            .then(json => {
-                if (json['status']) {
-                    habitEditRecordsSelect.innerHTML = "";
-                    if ((json['record'] === undefined) || (json['record'].length === 0)) {
-                        const optionRecord = document.createElement("option");
-                        optionRecord.innerText = "No Records";
-                        optionRecord.value = "";
-                        optionRecord.setAttribute("disabled", "");
-                        optionRecord.setAttribute("selected", "");
-                        habitEditRecordsSelect.appendChild(optionRecord);
-                    } else {
-                        json['record'].forEach(record => {
-                            const optionRecord = document.createElement("option");
-                            optionRecord.setAttribute("value", record['time_of_record']);
-                            optionRecord.setAttribute("id", "timeRecorded" + record['id'])
-                            optionRecord.innerText = record['time_of_record'];
-                            habitEditRecordsSelect.appendChild(optionRecord);
-                        })
-                    }
-                }
-            });
-        })
-
-        console.log("Habit Table")
-        console.log(habitTable);
-    }
-
-
     renderColorSelect(element, habit) {
         // -- Color Box Field -- //
         const colorSelect = document.createElement("select");
@@ -480,14 +307,13 @@ class Habit {
                 const boxes = progress.getElementsByClassName("box");
                 Array.from(boxes).forEach(function(box) { box.style.backgroundColor = colorSelect.value});
                 this.updateHabit(e, element, tmpHabit);
-                renderAllHabits(habit.user);
             }
         });
 
     }
 
     renderHabit2() {
-        console.log(">>>renderHabit2()")
+        console.log(">>>renderHabit2()");
 
         const habitTable = document.querySelector("table#habitTable");
 
@@ -542,7 +368,8 @@ class Habit {
                 colorBox.style.backgroundColor = this._color; */
 
             this.renderColorSelect(colorChoiceTD, this);
-            //colorChoiceTD.append(colorSelect, colorBox);
+            //renderColorOptions(colorSelect, this);
+            // colorChoiceTD.append(colorSelect, colorBox);
 
             // -- Goal/Frequency Mode Div -- //
             const mainHabitFreqTD = document.createElement("td");
@@ -572,7 +399,6 @@ class Habit {
                 logRecordSpan.setAttribute("id", "logRecordSpan" + this._id);
                 logRecordSpan.addEventListener("click", (event) => {
                     event.preventDefault();
-                    //toggleRecordsControl2(event);
                     document.getElementById("habitRecordsSubmitCell" + this._id).style.visibility = "visible";
                     document.getElementById("habitRecordsSubmitCell" + this._id).style.display = "block";
                     document.getElementById("habitRecordsRemoveDateCell" + this._id).style.visibility = "hidden";
@@ -588,7 +414,6 @@ class Habit {
                 removeRecordSpan.id = "removeRecordSpan" + this._id;
                 removeRecordSpan.addEventListener("click", (event) => {
                     event.preventDefault();
-                    //toggleRecordsControl2(event);
                     document.getElementById("habitRecordsRemoveDateCell" + this._id).style.visibility = "visible";
                     document.getElementById("habitRecordsRemoveDateCell" + this._id).style.display = "block";
                     document.getElementById("habitRecordsSubmitCell" + this._id).style.visibility = "hidden";
@@ -613,16 +438,16 @@ class Habit {
         //secondHabitRow.style.display = "none";
 
         const secondHabitRow = document.createElement("tr");
-        secondHabitRow.setAttribute("class", "habit-row");
+        //secondHabitRow.setAttribute("class", "habit-row");
         secondHabitRow.setAttribute("id", "habitRecordsControl" + this._id)
         secondHabitRow.style.visibility = "hidden";
         secondHabitRow.style.display = "none";
 
         //--cell with to submit a record and remove a record --//
         const habitRecordsControlTD = document.createElement("td");
-        //habitRecordsControlTD.setAttribute("class", "habit-cell");
+        habitRecordsControlTD.setAttribute("class", "habit-cell");
         habitRecordsControlTD.id = "habitRecordSubmitDateCell" + this._id;
-        habitRecordsControlTD.setAttribute("colspan", "5");
+        habitRecordsControlTD.setAttribute("colspan", "6");
 
             const habitRecordsSubmitDateToggleCell = document.createElement("div");
             habitRecordsSubmitDateToggleCell.id = "habitRecordsSubmitCell" + this._id;
@@ -695,9 +520,7 @@ class Habit {
             const all = habitEditRecordsSelect.querySelectorAll("option");
             const recordElement = Array.from(all).find(option => {
                 return option.value == habitEditRecordsSelect.value;
-            }
-
-            )
+            })
             HabitRecord.handleDeleteRecord(recordElement);
         });
         habitRecordsToRemoveSelect.addEventListener("change", () => {
@@ -923,18 +746,22 @@ function showHabits(user) {
     .then(json => {
         if (json['status'] && json['habits'] != undefined) {
             json['habits'].forEach(habit => {
-                const habitRowElement = document.createElement("div");
+                const habitRowElement = document.createElement("tr");
+                const habitNameTD = document.createElement("td");
+                const recordsTD = document.createElement("td");
+                const habitSpanElement = document.createElement("span");
+
                 habitRowElement.setAttribute("class", "habit-row");
                 habitRowElement.setAttribute("id", "allHabitRow" + habit.id)
-
-
-                const habitSpanElement = document.createElement("span");
                 habitSpanElement.setAttribute("class", "habit-cell");
                 habitSpanElement.innerText = habit.name;
-
-                habitRowElement.append(habitSpanElement);
+                recordsTD.id = "recordsTD" + habit.id;
+                habitNameTD.appendChild(habitSpanElement);
+                habitRowElement.append(habitNameTD, recordsTD);
                 habitTableElement.append(habitRowElement);
                 user.habits.push(habit);
+
+
                 let config = user.createAuthConfig(user.authToken);
 
                 const filterRange = (document.querySelector("select#selectFilterHabits").value == null) ? "last7" :
@@ -945,22 +772,16 @@ function showHabits(user) {
                     .then(json => {
                         console.log("going through each habit");
                         console.log(json);
-                        const recordsElement = document.createElement("div");
-                        recordsElement.setAttribute("class", "habit-cell");
-
                         if (json['status'] && json['record'] != undefined) {
                             json['record'].forEach(record => {
                                 const box = document.createElement("span");
                                 box.setAttribute("class", "boxAll");
                                 box.id = "box" + record['id'];
+                                console.log(habit.color);
                                 box.style.backgroundColor = habit.color;
-                                recordsElement.append(box);
+                                recordsTD.append(box);
                             })
-                            const allHabitsDivElement = document.getElementById("allHabits");
-                            const habitRowElement = document.getElementById("allHabitRow" + habit.id);
-                            console.log(allHabitsDivElement);
-                            console.log(habitRowElement);
-                            habitRowElement.appendChild(recordsElement);
+                            habitRowElement.appendChild(recordsTD);
                         }
                     })
 
@@ -1016,6 +837,7 @@ function renderAllHabits(user) {
         `
         <option name="all" value="all">All
         <option name="last7" value="last7" selected>Last Seven Days
+        <option name="lastMonth" value="lastMonth">Last Month
         <option name="currentMonth" value="currentMonth">Current Month
         <option name="currentYear" value="currentYear">Current Year
         `
@@ -1031,8 +853,7 @@ function renderAllHabits(user) {
 
     allHabitsDivElement.appendChild(allHabitsFilterDiv);
 
-    const allHabitNamesTableElement = document.createElement("div");
-    allHabitNamesTableElement.setAttribute("class", "habit-table-container");
+    const allHabitNamesTableElement = document.createElement("table");
     allHabitNamesTableElement.setAttribute("id", "allHabitsTable");
 
     allHabitsDivElement.appendChild(allHabitNamesTableElement);
