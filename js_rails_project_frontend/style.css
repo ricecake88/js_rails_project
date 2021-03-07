@@ -1,5 +1,12 @@
-body {
-    font: 9pt Arial, Sans-Serif;
+@import 'https://fonts.googleapis.com/icon?family=Material+Icons';
+
+body,input, select, button {
+    font: 20pt Verdana, sans-serif;
+}
+
+table, th, td {
+    border: 1px solid black;
+    font-size: 15px;
 }
 
 div.hidden {
@@ -9,10 +16,12 @@ div.hidden {
 div.show {
     display:block;
 }
+
 div#error {
     color: red;
     font-weight: bold;
 }
+
 button#signupLink {
     text-decoration:underline;
     border: none;
@@ -22,20 +31,16 @@ button#signupLink {
     color: blue;
 }
 
-.habit-grid-container {
-    display: table;
-    width:100%;
-}
-
 .habit-table-container {
     display: table;
-    width:100%;
+    margin: 10px;
+    border: 1px solid purple;
+
 }
 
 .habit-row {
     display: table-row;
     border: 1px solid green;
-    width: 100%;
 }
 
 .habit-head-group {
@@ -46,26 +51,33 @@ button#signupLink {
    display: table-cell;
 }
 
-.habit-cell {
-    display: table-cell;
-    border: 1px solid black;
+.X {
+    /*width:25px;
+    display: table-cell;*/
+    border: 1px solid red;
+    padding: 10px;
+
 }
 
 .habit-name {
     text-decoration:underline;
+    /*display: table-cell;*/
+    border: 1px solid blue;
+    width: 250px;
+    padding: 5px;
+    padding: 10px;
 }
 
-.habit-mark {
-    border: 1px solid green;
+.habitNameSpan {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.habit-progress {
+    /*border: 1px solid green;*/
     padding: 0;
-}
-
-#focusedHabit {
-    display: none;
-}
-
-.arrow {
-    width: 10px;
+    width: 100px;
+    padding: 10px;
 }
 
 .box {
@@ -86,7 +98,6 @@ button#signupLink {
     margin: 0px;
 }
 
-.blah {
-    display: inline-block;
-    padding: 10px;
+.mdIcon {
+    font-family: 'Material Icons' !important;
 }
