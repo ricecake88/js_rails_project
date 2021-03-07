@@ -5,12 +5,16 @@ function checkIfInRange(time_of_record, range="last7") {
         const beginning_of_last_year = new Date(today.getFullYear()-1, 0, 1);
         const end_of_last_year = new Date(today.getFullYear()-1, 11, 31);
         if ((record_as_time < beginning_of_last_year.getTime()) && (record_as_time > end_of_last_year.getTime())) return true;
+     } else if (range === "lastMonth") {
+        const beginning_of_last_month = new Date(today.getFullYear(), today.getMonth()-1, 1);
+        const end_of_last_month = new Date(today.getFullYear(), today.getMonth()-1, 1);
+        if ((record_as_time >= beginning_of_last_month.getTime()) && (record_as_time <= end_of_last_month.getTime())) return true;
      } else if (range === "currentYear") {
-        const beginning_of_year = new Date(today.getFullYear, 0, 1);
+        const beginning_of_year = new Date(today.getFullYear(), 0, 1);
         if ((record_as_time > beginning_of_year.getTime()) && (record_as_time <= today.getTime())) return true;
      } else if (range === "currentMonth") {
-        const beginning_of_month = new Date(today.getFullYear, today.getMonth()+1, 1);
-        if ((record_as_time > beginning_of_month.getTime()) && record_as_time <= today.getTime()) return true;
+        const beginning_of_month = new Date(today.getFullYear(), today.getMonth(), 1);
+        if ((record_as_time >= beginning_of_month.getTime()) && record_as_time <= today.getTime()) return true;
      } else {
         const fromDate = new Date(today.getFullYear(), today.getMonth(), today.getDate()-7);
         if (record_as_time > fromDate.getTime()) return true;
@@ -151,6 +155,8 @@ class HabitRecord {
     }
 
     static handleNewRecord(habit) {
+        console.log(habit);
+        //debugger
         HabitRecord.createRecord(habit).then(json => {
             HabitRecord.renderNewRecord(json, habit);
         })
@@ -167,7 +173,8 @@ class HabitRecord {
         const records = document.createElement("p");
         const error = document.getElementById("error");
         const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
-
+        const range = document.getElementById("habitFilterRecordsToRemove" + habit.id).value;
+        const habitEditRecordsSelect = document.getElementById("habitEditRecord" + habit.id);
         if (json['status'] == true) {
             records.innerText = json['record']['time_of_record'];
             const matchedHabit = Habit.all.find(habit => habit.id === json['record']['habit_id'])
@@ -181,14 +188,39 @@ class HabitRecord {
                 habitRecordBoxesTD.appendChild(box);
             }
 
-            if (checkIfInRange(json['record']['time_of_record'], document.getElementById("habitFilterRecordsToRemove" + habit.id).value)) {
+            const habitRecordsConfigObject = HabitRecord.createGetRecordsConfig(habit);
+            console.log(habit.id);
+             fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${habit.id}&range=${range}`, habitRecordsConfigObject)
+            .then(json => {
+                if (json['status']) {
+                    habitEditRecordsSelect.innerHTML = "";
+                    //debugger
+                    if ((json['record'] === undefined) || (json['record'].length === 0)) {
+                        const optionRecord = document.createElement("option");
+                        optionRecord.innerText = "No Records";
+                        optionRecord.value = "";
+                        optionRecord.setAttribute("disabled", "");
+                        optionRecord.setAttribute("selected", "");
+                        habitEditRecordsSelect.appendChild(optionRecord);
+                    } else {
+                        json['record'].forEach(record => {
+                            const optionRecord = document.createElement("option");
+                            optionRecord.setAttribute("value", record['time_of_record']);
+                            optionRecord.setAttribute("id", "timeRecorded" + record['id'])
+                            optionRecord.innerText = record['time_of_record'];
+                            habitEditRecordsSelect.appendChild(optionRecord);
+                        })
+                    }
+                }                
+            }); 
+/*             if (checkIfInRange(json['record']['time_of_record'], document.getElementById("habitFilterRecordsToRemove" + habit.id).value)) {
                 const habitEditRecordsSelect = document.querySelector("select#habitEditRecord" + habit.id);
                 const optionRecord = document.createElement("option");
                 optionRecord.setAttribute("value", json['record']['time_of_record']);
                 optionRecord.innerText = json['record']['time_of_record'];
                 optionRecord.id = "timeRecorded" + json['record']['id'];
                 habitEditRecordsSelect.appendChild(optionRecord);
-            }
+            } */
             renderAllHabits(habit.user);
         } else {
             error.innerText = json['errors'];
@@ -210,27 +242,65 @@ class HabitRecord {
     }
 
     deleteRecords(json) {
+        console.log("deleteRecords");
         if (json['status']) {
             const habitEditRecordsSelect = document.getElementById("habitEditRecord" + this.habit.id);
+            const range = document.getElementById("habitFilterRecordsToRemove" + this.habit.id).value;
             const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + this.habit.id);
             const habitRecordsOption = document.querySelector("option#timeRecorded" + this.id);
             const boxToRemove = document.querySelector("span#box" + this.id);
-            const record = HabitRecord.all[HabitRecord.all.indexOf(this)];
-
-            // remove record from Habit Records
-            HabitRecord.all.splice(record,1)
+            //debugger
+            HabitRecord.all.splice(HabitRecord.all.indexOf(this), 1);
+            //debugger
 
             // remove box from view if it is within 7 days
-            if ((boxToRemove !== null) && (checkIfInRange(record.timeOfRecord, "last7"))) {
+            //debugger
+            if ((boxToRemove !== null) && (checkIfInRange(this.timeOfRecord, "last7"))) {
                 //habitRecordBoxesDiv.removeChild(boxToRemove);
+                console.log(habitRecordBoxesTD);
                 habitRecordBoxesTD.removeChild(boxToRemove);
             }
 
-            // remove option from selection if it does not match the range selected
-            if (checkIfInRange(record.timeOfRecord, document.getElementById("habitFilterRecordsToRemove" + this.habit.id).value)) {
+            // retrieve records again
+            const habitRecordsConfigObject = HabitRecord.createGetRecordsConfig(this.habit);
+            console.log(this.habit.id);
+             fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${this.habit.id}&range=${range}`, habitRecordsConfigObject)
+            .then(json => {
+                if (json['status']) {
+                    habitEditRecordsSelect.innerHTML = "";
+                    //debugger
+                    if ((json['record'] === undefined) || (json['record'].length === 0)) {
+                        const optionRecord = document.createElement("option");
+                        optionRecord.innerText = "No Records";
+                        optionRecord.value = "";
+                        optionRecord.setAttribute("disabled", "");
+                        optionRecord.setAttribute("selected", "");
+                        habitEditRecordsSelect.appendChild(optionRecord);
+                    } else {
+                        json['record'].forEach(record => {
+                            const optionRecord = document.createElement("option");
+                            optionRecord.setAttribute("value", record['time_of_record']);
+                            optionRecord.setAttribute("id", "timeRecorded" + record['id'])
+                            optionRecord.innerText = record['time_of_record'];
+                            habitEditRecordsSelect.appendChild(optionRecord);
+                        })
+                    }
+                }    
+                renderAllHabits(this.habit.user);            
+            }); 
+
+/*             if (checkIfInRange(record.timeOfRecord, document.getElementById("habitFilterRecordsToRemove" + this.habit.id).value)) {
                 habitEditRecordsSelect.removeChild(habitRecordsOption);
-            }
-            renderAllHabits(this.habit.user);
+                if (!habitEditRecordsSelect.hasChildNodes()) {
+                    const empty = document.createElement("option");
+                    empty.innerText = "No Records";
+                    empty.id = "optionNoRecords";
+                    empty.setAttribute("selected", "");
+                    empty.setAttribute("disabled", "");
+                    habitEditRecordsSelect.appendChild(empty);
+                }
+            } */
+            
         }
     }
 
