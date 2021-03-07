@@ -6,13 +6,6 @@ fetch(`${BACKEND_URL}/test`)
 function fetchJSON(action_path, configObject) {
     return fetch(action_path, configObject)
     .then(response => response.json())
-    //.then(response => {
-    //    if (!response.ok) {
-    //        throw new Error(response);
-    //    } else {
-    //        response.json();
-    //    }
-    //})
     .then(json => json)
     .catch(function(error) {
       let errorElement = document.getElementById("error");
@@ -70,6 +63,7 @@ function monitorUserArea(user) {
                 //getAuth(user.handleLoginConfig.bind(user), "habits", user, config,);
                 fetchJSON(`${BACKEND_URL}/auth_user`, config)
                 .then(json => {
+                    console.log(json);
                     if (json['status']) {
                         authConfig = user.createAuthConfig(json['auth_token'])
                         console.log("\tFrom auth_user json returned:\n\t")
@@ -133,7 +127,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     User.renderLogin();
     monitorUserArea(user);
     monitorSignupLink();
-    Habit.getHabits(user);
 
 
 })
