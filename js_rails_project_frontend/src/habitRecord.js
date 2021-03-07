@@ -124,7 +124,6 @@ class HabitRecord {
     }
 
     static renderRecords(json, habit) {
-        //const habitRecordBoxesDiv = document.getElementById("habitRecordBoxes" + habit.id);
         const habitEditRecordsSelect = document.getElementById("habitEditRecord" + habit.id);
         const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
 
@@ -132,7 +131,7 @@ class HabitRecord {
         console.log(json);
         if (json['status'] && json['record'] != undefined) {
             json['record'].forEach(record => {
-                const matchedHabit = Habit.all.find(id => record['habit_id'])
+                const matchedHabit = Habit.all.find(habi => habit.id === record['habit_id']);
                 new HabitRecord(record['id'], matchedHabit, record['time_of_record'])
                 const box = document.createElement("span");
                 box.setAttribute("class", "box");
@@ -167,12 +166,11 @@ class HabitRecord {
     static renderNewRecord(json, habit) {
         const records = document.createElement("p");
         const error = document.getElementById("error");
-        //const habitRecordBoxesDiv = document.getElementById("habitRecordBoxes" + habit.id)
         const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
 
         if (json['status'] == true) {
             records.innerText = json['record']['time_of_record'];
-            const matchedHabit = Habit.all.find(id => json['record']['habit_id'])
+            const matchedHabit = Habit.all.find(habit => habit.id === json['record']['habit_id'])
             new HabitRecord(json['record']['id'], matchedHabit, json['record']['time_of_record'])
 
             if (checkIfInRange(json['record']['time_of_record'], "last7")) {
@@ -223,7 +221,7 @@ class HabitRecord {
             HabitRecord.all.splice(record,1)
 
             // remove box from view if it is within 7 days
-            if ((boxToRemove !== null) && (checkIfInRange(this.timeOfRecord, "last7"))) {
+            if ((boxToRemove !== null) && (checkIfInRange(record.timeOfRecord, "last7"))) {
                 //habitRecordBoxesDiv.removeChild(boxToRemove);
                 habitRecordBoxesTD.removeChild(boxToRemove);
             }
