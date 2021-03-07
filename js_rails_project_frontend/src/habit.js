@@ -523,14 +523,16 @@ class Habit {
             })
             HabitRecord.handleDeleteRecord(recordElement);
         });
-        habitRecordsToRemoveSelect.addEventListener("change", () => {
+         habitRecordsToRemoveSelect.addEventListener("change", () => {
             const habitEditRecordsSelect = document.getElementById("habitEditRecord" + this._id);
-            const config = HabitRecord.createGetRecordsConfig(this)
+            const config = HabitRecord.createGetRecordsConfig(this);
+            // check if No Records exist
             //DISPLAY BASED ON RANGE ONLY, DO NOT MODIFY DATABASES OR CLASS INSTANCES
             fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${this._id}&range=${habitRecordsToRemoveSelect.value}`, config)
             .then(json => {
                 if (json['status']) {
                     habitEditRecordsSelect.innerHTML = "";
+                    //debugger
                     if ((json['record'] === undefined) || (json['record'].length === 0)) {
                         const optionRecord = document.createElement("option");
                         optionRecord.innerText = "No Records";
@@ -549,7 +551,7 @@ class Habit {
                     }
                 }
             });
-        })
+        }) 
         console.log("Habit Table")
         console.log(habitTable);
     }
@@ -835,11 +837,12 @@ function renderAllHabits(user) {
         allHabitsFilterSelect.id = "selectFilterHabits";
         allHabitsFilterSelect.innerHTML =
         `
-        <option name="all" value="all">All
+        <option value="" disable selected>Filter Range
         <option name="last7" value="last7" selected>Last Seven Days
         <option name="lastMonth" value="lastMonth">Last Month
         <option name="currentMonth" value="currentMonth">Current Month
         <option name="currentYear" value="currentYear">Current Year
+        <option name="lastYear" value="lastYear">Last Year
         `
         const allHabitsFilterSubmit = document.createElement("button");
         allHabitsFilterSubmit.setAttribute("class", "filterHabits");
