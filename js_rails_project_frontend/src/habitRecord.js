@@ -1,3 +1,23 @@
+function checkIfInRange(time_of_record, range="last7") {
+    const record_as_time = new Date(time_of_record).getTime();
+    const today = new Date();
+     if (range === "lastYear") {
+        const beginning_of_last_year = new Date(today.getFullYear()-1, 0, 1);
+        const end_of_last_year = new Date(today.getFullYear()-1, 11, 31);
+        if ((record_as_time < beginning_of_last_year.getTime()) && (record_as_time > end_of_last_year.getTime())) return true;
+     } else if (range === "currentYear") {
+        const beginning_of_year = new Date(today.getFullYear, 0, 1);
+        if ((record_as_time > beginning_of_year.getTime()) && (record_as_time <= today.getTime())) return true;
+     } else if (range === "currentMonth") {
+        const beginning_of_month = new Date(today.getFullYear, today.getMonth()+1, 1);
+        if ((record_as_time > beginning_of_month.getTime()) && record_as_time <= today.getTime()) return true;
+     } else {
+        const fromDate = new Date(today.getFullYear(), today.getMonth(), today.getDate()-7);
+        if (record_as_time > fromDate.getTime()) return true;
+     }
+     return false;
+}
+
 class HabitRecord {
 
     static all = [];
@@ -104,8 +124,9 @@ class HabitRecord {
     }
 
     static renderRecords(json, habit) {
-        const habitRecordBoxesDiv = document.getElementById("habitRecordBoxes" + habit.id);
+        //const habitRecordBoxesDiv = document.getElementById("habitRecordBoxes" + habit.id);
         const habitEditRecordsSelect = document.getElementById("habitEditRecord" + habit.id);
+        const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
 
         /////TO-DO: FIX ERROR MESSAGES BEING RETURNED AND STATUSES
         console.log(json);
@@ -113,11 +134,11 @@ class HabitRecord {
             json['record'].forEach(record => {
                 const matchedHabit = Habit.all.find(id => record['habit_id'])
                 new HabitRecord(record['id'], matchedHabit, record['time_of_record'])
-                //new HabitRecord(record['id'], record['habit_id'], record['user_id'], record['time_of_record'])
                 const box = document.createElement("span");
                 box.setAttribute("class", "box");
                 box.id = "box" + record['id'];
-                habitRecordBoxesDiv.appendChild(box);
+                box.style.backgroundColor = habit.color;
+                habitRecordBoxesTD.appendChild(box);
 
                 const optionRecord = document.createElement("option");
                 optionRecord.setAttribute("value", record['time_of_record']);
@@ -139,7 +160,6 @@ class HabitRecord {
 
     static createRecord(habit) {
         const configObject = HabitRecord.createAddRecordConfig(habit);
-        console.log(configObject);
         return fetchJSON(`${BACKEND_URL}/habit_records`, configObject)
         .then(json => json)
     }
@@ -147,27 +167,33 @@ class HabitRecord {
     static renderNewRecord(json, habit) {
         const records = document.createElement("p");
         const error = document.getElementById("error");
-        const habitRecordBoxesDiv = document.getElementById("habitRecordBoxes" + habit.id)
+        //const habitRecordBoxesDiv = document.getElementById("habitRecordBoxes" + habit.id)
+        const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
+
         if (json['status'] == true) {
             records.innerText = json['record']['time_of_record'];
-            //new HabitRecord(json['record']['id'], json['record']['habit_id'], json['record']['user_id'], json['record']['time_of_record']);
             const matchedHabit = Habit.all.find(id => json['record']['habit_id'])
             new HabitRecord(json['record']['id'], matchedHabit, json['record']['time_of_record'])
-            const box = document.createElement("span");
-            box.setAttribute("class", "box");
-            box.id = "box" + json['record']['id'];
-            habitRecordBoxesDiv.appendChild(box);
-            habitRecordBoxesDiv.appendChild(records);
 
-            const habitEditRecordsSelect = document.querySelector("select#habitEditRecord" + habit.id);
-            const optionRecord = document.createElement("option");
-            optionRecord.setAttribute("value", json['record']['time_of_record']);
-            optionRecord.innerText = json['record']['time_of_record'];
-            optionRecord.id = "timeRecorded" + json['record']['id'];
-            habitEditRecordsSelect.appendChild(optionRecord);
+            if (checkIfInRange(json['record']['time_of_record'], "last7")) {
+                const box = document.createElement("span");
+                box.setAttribute("class", "box");
+                box.id = "box" + json['record']['id'];
+                box.style.backgroundColor = habit.color;
+                habitRecordBoxesTD.appendChild(box);
+            }
+
+            if (checkIfInRange(json['record']['time_of_record'], document.getElementById("habitFilterRecordsToRemove" + habit.id).value)) {
+                const habitEditRecordsSelect = document.querySelector("select#habitEditRecord" + habit.id);
+                const optionRecord = document.createElement("option");
+                optionRecord.setAttribute("value", json['record']['time_of_record']);
+                optionRecord.innerText = json['record']['time_of_record'];
+                optionRecord.id = "timeRecorded" + json['record']['id'];
+                habitEditRecordsSelect.appendChild(optionRecord);
+            }
+            renderAllHabits(habit.user);
         } else {
-            console.log("renderNewRecord");
-            console.log(json);
+            debugger
             error.innerText = json['errors'];
         }
     }
@@ -175,7 +201,7 @@ class HabitRecord {
     static handleDeleteRecord(record) {
         const recordId = parseInt(record.id.match(/[0-9]+/)[0])
         const recordObj = HabitRecord.all.find(r => r.id === recordId)
-        recordObj.delete().then(json => recordObj.updateRecords(json))
+        recordObj.delete().then(json => recordObj.deleteRecords(json))
     }
 
     delete() {
@@ -186,18 +212,28 @@ class HabitRecord {
             .then(json => json)
     }
 
-    updateRecords(json) {
-        //TO-DO: ERROR HANDLING STILL NEEDS TO BE DONE
+    deleteRecords(json) {
         if (json['status']) {
             const habitEditRecordsSelect = document.getElementById("habitEditRecord" + this.habit.id);
-            const boxToRemove = document.querySelector("span#box" + this.id);
-            const habitRecordBoxesDiv = document.querySelector("div#habitRecordBoxes" + this.habit.id);
+            const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + this.habit.id);
             const habitRecordsOption = document.querySelector("option#timeRecorded" + this.id);
+            const boxToRemove = document.querySelector("span#box" + this.id);
+            const record = HabitRecord.all.indexOf(this);
 
-            //TO-DO: ERROR HANDLING
-            HabitRecord.all.splice(HabitRecord.all.indexOf(this),1)
-            habitRecordBoxesDiv.removeChild(boxToRemove);
-            habitEditRecordsSelect.removeChild(habitRecordsOption);
+            // remove record from Habit Records
+            HabitRecord.all.splice(record,1)
+
+            // remove box from view if it is within 7 days
+            if ((boxToRemove !== null) && (checkIfInRange(this.timeOfRecord, "last7"))) {
+                //habitRecordBoxesDiv.removeChild(boxToRemove);
+                habitRecordBoxesTD.removeChild(boxToRemove);
+            }
+
+            // remove option from selection if it does not match the range selected
+            if (checkIfInRange(record.timeOfRecord, document.getElementById("habitFilterRecordsToRemove" + this.habit.id).value)) {
+                habitEditRecordsSelect.removeChild(habitRecordsOption);
+            }
+            renderAllHabits(this.habit.user);
         }
     }
 
