@@ -53,6 +53,6 @@ class HabitsController < ApplicationController
 
     private
     def habit_params
-        params.require(:habit).permit(:name, :frequency_mode, :streak_level, :streak_counter, :user_id)
+        params.require(:habit).permit(:name, :frequency_mode, :num_for_streak, :streak_level, :streak_counter, :color, :user_id)
     end
 end
