@@ -1,6 +1,5 @@
 class HabitsController < ApplicationController
 
-    #before_action :authenticate_request!, only: [:index]
     before_action :authenticate_request!
 
     def index
@@ -18,16 +17,18 @@ class HabitsController < ApplicationController
             habit = Habit.find_by(:name => params[:name], :user_id => @current_user.id)
             if !habit.present?
                 habit = Habit.new(habit_params)
-                if habit.save!
+                if habit.save
                     habit.user = @current_user
                     render json: {status: true, message: "habit saved", habit: habit}
+                else
+                    render json: {status: false, errors: habit.errors.full_messages}
                 end
 
             else
                 render json: {status: false, errors: habit.errors.full_messages.push("Habit Already Exists")}
             end
         else
-            render json: {status: false, message: "Not Logged In"}
+            render json: {status: false, errors: "Not Logged In"}
         end
     end
 
