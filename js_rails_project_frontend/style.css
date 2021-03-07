@@ -1,7 +1,7 @@
 @import 'https://fonts.googleapis.com/icon?family=Material+Icons';
 
 body,input, select, button {
-    font: 20pt Verdana, sans-serif;
+    font: 12pt Verdana, sans-serif;
 }
 
 table, th, td {
@@ -41,40 +41,33 @@ button#signupLink {
 .habit-row {
     display: table-row;
     border: 1px solid green;
+    margin: 10px;
 }
 
-.habit-head-group {
-    display: table-header-group
-}
-
-.habit-head-cell {
-   display: table-cell;
+.habit-cell {
+    padding: 10px;
 }
 
 .X {
-    /*width:25px;
-    display: table-cell;*/
+
     border: 1px solid red;
     padding: 10px;
-
 }
 
 .habit-name {
     text-decoration:underline;
-    /*display: table-cell;*/
-    border: 1px solid blue;
     width: 250px;
     padding: 5px;
     padding: 10px;
 }
 
-.habitNameSpan {
+/*.habitNameSpan*/
+select {
     margin-left: 10px;
     margin-right: 10px;
 }
 
 .habit-progress {
-    /*border: 1px solid green;*/
     padding: 0;
     width: 100px;
     padding: 10px;
