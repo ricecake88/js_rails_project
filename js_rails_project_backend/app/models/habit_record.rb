@@ -10,7 +10,7 @@ class HabitRecord < ApplicationRecord
         if params[:range] == "currentMonth"
             return HabitRecord.where(habit_id: params[:habit_id], user_id:user_id,time_of_record: Date.today.beginning_of_month..DateTime.current.to_date).sort_by(&:time_of_record)
         elsif params[:range] == "lastMonth"
-            return HabitRecord.where(habit_id: params[:habit_id], user_id:user_id, time_of_record: DateTime.last_month..Date.today.beginning_of_month.yesterday).sort_by(&:time_of_record)
+            return HabitRecord.where(habit_id: params[:habit_id], user_id:user_id, time_of_record: Date.today.last_month..Date.today.beginning_of_month.yesterday).sort_by(&:time_of_record)
         elsif params[:range] == "currentYear"
             return HabitRecord.where(habit_id: params[:habit_id], user_id:user_id, time_of_record: Date.today.beginning_of_year..DateTime.current.to_date).sort_by(&:time_of_record)
         elsif params[:range] == "lastYear"
@@ -24,7 +24,7 @@ class HabitRecord < ApplicationRecord
     end
 
     def record_cannot_be_in_future
-        if time_of_record.present? && time_of_record > DateTime.current.to_date
+        if time_of_record.present? && time_of_record > Date.today.to_date
             errors.add(:time_of_record, "can't be in the future")
         end
     end
