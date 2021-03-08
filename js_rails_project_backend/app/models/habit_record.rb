@@ -4,8 +4,6 @@ class HabitRecord < ApplicationRecord
     validate :record_cannot_be_in_future
     validates :time_of_record, presence: true
 
-
-    # TO-DO: FIX LAST MONTH RECORD AND LAST YEAR
     def self.records(params, user_id)
         if params[:range] == "currentMonth"
             return HabitRecord.where(habit_id: params[:habit_id], user_id:user_id, time_of_record: Date.today.beginning_of_month..DateTime.current.to_date).sort_by(&:time_of_record)
