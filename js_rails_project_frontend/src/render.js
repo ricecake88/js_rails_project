@@ -21,115 +21,126 @@ function renderHabitControlHead() {
 
 }
 
-function renderColorOptions(habitColorSelect, selected_color="pink") {
-    
-    const colors = ["blue", "black", "green", "lightblue", "orange", "pink", "purple", "red", "yellow", "violet"]
-    colors.forEach(color => {
-        const option = document.createElement("option");
-        option.name = color
-        option.value = color
-        option.innerText = color
-        if (color === selected_color) {
-            option.setAttribute("selected", "");
-        }
-        habitColorSelect.appendChild(option);
-    })
-    const colorBox = document.createElement("span");
-    colorBox.setAttribute("class", "box");
-    colorBox.style.backgroundColor = selected_color;
-
-    habitColorSelect.parentNode.append(habitColorSelect, colorBox);
+function filterHabitRecords(e, user) {
+    e.preventDefault();
+    showHabits(user);
 }
 
-function RENDER_renderAddHabitForm() {
+function showHabits(user) {
+    console.log("showHabits");
 
-    console.log(">>>>>> renderAddHabitForm()");
-    const userAreaElement = document.getElementById("user");
-    userAreaElement.innerHTML = "";
+    //let config = user.createAuthConfig(user.authToken);
+/*     const range = document.querySelectorAll("select").forEach(function(select) {
+        return select.id.includes("selectFilterHabits");
+    }) */
+    const habitTableElement = document.getElementById("allHabitsTable");
+    habitTableElement.innerHTML = "";
+    fetchJSON(`${BACKEND_URL}/habits`, user.createAuthConfig(user.authToken))
+    .then(json => {
+        if (json['status'] && json['habits'] != undefined) {
+            json['habits'].forEach(habit => {
+                const habitRowElement = document.createElement("tr");
+                const habitNameTD = document.createElement("td");
+                const recordsTotalTD = document.createElement("td");
+                const recordsTD = document.createElement("td");
+                const habitSpanElement = document.createElement("span");
 
-    const habitForm = document.createElement("form");
-    const habitNameLabel = document.createElement("label");
-    const habitNameInput = document.createElement("input");
-    const frequencyLabel = document.createElement("label");
-    const frequencySelect = document.createElement("select");
-    const streakLevelLabel = document.createElement("label");
-    const streakLevelSelect = document.createElement("select");
-    const habitColorLabel = document.createElement("label");
-    const habitColorSelect = document.createElement("select");
-    const goals = ["Everyday", "Every Other Day"];
-    const streakLevels = ["Easy", "Medium", "Hard"];
-    
+                habitRowElement.setAttribute("class", "habit-row");
+                habitRowElement.setAttribute("id", "allHabitRow" + habit.id)
+                habitSpanElement.setAttribute("class", "habit-cell");
+                habitSpanElement.innerText = habit.name;
+                recordsTD.id = "recordsTD" + habit.id;
 
-    habitForm.name = "habitForm";
-    habitForm.id = "habitForm";
-    
-    habitNameLabel.innerText = "Habit: ";
-    habitNameInput.id = "habitName"
-    habitNameInput.type = "text";
-    habitNameInput.placeholder = "Enter a habit";
+                habitNameTD.appendChild(habitSpanElement);
+                habitRowElement.append(habitNameTD, recordsTotalTD, recordsTD);
+                habitTableElement.append(habitRowElement);
+                user.habits.push(habit);
 
-    frequencyLabel.innerText = "Goal: "
-    frequencySelect.id = "frequency";
-    
-    goals.forEach(goal => {
-        const optionElement = document.createElement("option");
-        optionElement.value = goal;
-        optionElement.name = goal;
-        optionElement.innerText = goal;
-        frequencySelect.appendChild(optionElement);
-    })
+                const filterRange = (document.querySelector("select#selectFilterHabits").value == null) ? "last7" :
+                        document.querySelector("select#selectFilterHabits").value;
 
-    
-    streakLevelLabel.innerText = "Streak Level: "
+                    fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${habit.id}&range=${filterRange}`, user.createAuthConfig(user.authToken))
+                    .then(json => {
+                        if (json['status'] && json['record'] != undefined) {
+                            json['record'].forEach(record => {
+                                const box = document.createElement("span");
+                                box.setAttribute("class", "boxAll");
+                                box.id = "box" + record['id'];
+                                box.style.backgroundColor = habit.color;
+                                recordsTD.append(box);
+                            })
+                            recordsTotalTD.innerText = json['record'].length;
+                            habitRowElement.appendChild(recordsTD);
+                        }
+                    })
 
-    streakLevelSelect.id = "streakLevel";  
-    streakLevels.forEach(streakLevel => {
-        const optionElement = document.createElement("option");
-        optionElement.value = streakLevel;
-        optionElement.name = streakLevel;
-        optionElement.innerText = streakLevel;
-        streakLevelSelect.appendChild(optionElement);
-    })
+            })
 
-    habitForm.append(habitNameLabel, habitNameInput);
-    habitForm.append(frequencyLabel, frequencySelect);
-    habitForm.append(streakLevelLabel, streakLevelSelect);
-    habitForm.append(habitColorLabel, habitColorSelect);
-    habitColorLabel.innerText = "Color: "
-    habitColorSelect.id = "habitColor";
-    renderColorOptions(habitColorSelect, "pink");
-/*     const colors = ["blue", "black", "green", "lightblue", "orange", "pink", "purple", "red", "yellow", "violet"]
-    colors.forEach(color => {
-        const option = document.createElement("option");
-        option.name = color
-        option.value = color
-        option.innerText = color
-        if (color === "pink") {
-            option.setAttribute("selected", "");
+
         }
-        habitColorSelect.appendChild(option);
     })
+}
 
-    const colorChoice = document.createElement("span");
-    colorChoice.id = "colorChoice";
-    colorChoice.setAttribute("class", "box");
-    colorChoice.style.backgroundColor = "pink"; */
+function getFilteredHabitRecords(user, habit) {
+    let config = user.createAuthConfig(user.authToken);
 
-    habitColorSelect.addEventListener("change", function(event) {
-        event.preventDefault();
-        document.getElementById("colorChoice").style.backgroundColor = document.getElementById("habitColor").value;
-    }) 
+    const filterRange = (document.querySelector("select#selectFilterHabits").value == null) ? "last7" :
+            document.querySelector("select#selectFilterHabits").value;
 
-    const submitHabit = document.createElement("button");
-    submitHabit.type = "submit";
-    submitHabit.value = "submitNewHabit";
-    submitHabit.name = "submitNewHabit";
-    submitHabit.innerText = "Add";
+    fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${habit.id}&range=${filterRange}`, config)
+        .then(json => {
+            const recordsElement = document.createElement("div");
+            recordsElement.setAttribute("class", "habit-cell");
+
+            if (json['status'] && json['record'] != undefined) {
+                json['record'].forEach(record => {
+                    const box = document.createElement("span");
+                    box.setAttribute("class", "boxAll");
+                    box.id = "box" + record['id'];
+                    box.style.backgroundColor = habit.color;
+                    recordsElement.append(box);
+                })
+                const habitRowElement = document.getElementById("allHabitRow" + habit.id);
+                habitRowElement.appendChild(recordsElement);
+            }
+        })
+
+}
+
+function renderHabitSummary(user) {
+    console.log("renderHabitSummary!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    const allHabitsDivElement = document.getElementById("allHabits");
+    allHabitsDivElement.innerHTML = "";
+
+    const allHabitsFilterDiv = document.createElement("div");
+
+        const allHabitsFilterSelect = document.createElement("select");
+        allHabitsFilterSelect.id = "selectFilterHabits";
+        allHabitsFilterSelect.innerHTML =
+        `
+        <option value="" disabled selected>Filter Range
+        <option name="last7" value="last7" selected>Last Seven Days
+        <option name="lastMonth" value="lastMonth">Last Month
+        <option name="currentMonth" value="currentMonth">Current Month
+        <option name="currentYear" value="currentYear">Current Year
+        <option name="lastYear" value="lastYear">Last Year
+        `
+
+        allHabitsFilterSelect.addEventListener("click", e => {
+                filterHabitRecords(e, user);
+        })
+
+    allHabitsFilterDiv.appendChild(allHabitsFilterSelect);
+    allHabitsDivElement.appendChild(allHabitsFilterDiv);
+
+    const allHabitNamesTableElement = document.createElement("table");
+    allHabitNamesTableElement.setAttribute("id", "allHabitsTable");
+
+    allHabitsDivElement.appendChild(allHabitNamesTableElement);
+
+    showHabits(user);
 
 
 
-    //habitForm.append(habitColorLabel, habitColorSelect, colorChoice);
-    habitForm.appendChild(submitHabit);
-    userAreaElement.append(habitForm);
 
 }

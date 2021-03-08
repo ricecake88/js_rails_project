@@ -80,22 +80,6 @@ class HabitRecord {
         }
     }
 
-    static createDeleteRecordsConfig(habit) {
-        return {
-            method: 'delete',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": "Bearer " + habit.user.authToken
-            },
-            body: JSON.stringify({
-                'habit_id': habit.id,
-                'user_id': habit.user.id,
-                "time_of_record": document.getElementById("habitEditRecord" + habit.id).value
-            })
-        }
-    }
-
     createDeleteRecordsConfig() {
         return {
             method: 'delete',
@@ -137,11 +121,13 @@ class HabitRecord {
             json['record'].forEach(record => {
                 const matchedHabit = Habit.all.find(habi => habit.id === record['habit_id']);
                 new HabitRecord(record['id'], matchedHabit, record['time_of_record'])
-                const box = document.createElement("span");
-                box.setAttribute("class", "box");
-                box.id = "box" + record['id'];
-                box.style.backgroundColor = habit.color;
-                habitRecordBoxesTD.appendChild(box);
+                if (checkIfInRange(record['time_of_record'], "last7")) {
+                    const box = document.createElement("span");
+                    box.setAttribute("class", "box");
+                    box.id = "box" + record['id'];
+                    box.style.backgroundColor = habit.color;
+                    habitRecordBoxesTD.appendChild(box);
+                }
 
                 const optionRecord = document.createElement("option");
                 optionRecord.setAttribute("value", record['time_of_record']);
@@ -211,17 +197,9 @@ class HabitRecord {
                             habitEditRecordsSelect.appendChild(optionRecord);
                         })
                     }
-                }                
-            }); 
-/*             if (checkIfInRange(json['record']['time_of_record'], document.getElementById("habitFilterRecordsToRemove" + habit.id).value)) {
-                const habitEditRecordsSelect = document.querySelector("select#habitEditRecord" + habit.id);
-                const optionRecord = document.createElement("option");
-                optionRecord.setAttribute("value", json['record']['time_of_record']);
-                optionRecord.innerText = json['record']['time_of_record'];
-                optionRecord.id = "timeRecorded" + json['record']['id'];
-                habitEditRecordsSelect.appendChild(optionRecord);
-            } */
-            renderAllHabits(habit.user);
+                }
+            });
+            renderHabitSummary(habit.user);
         } else {
             error.innerText = json['errors'];
         }
@@ -249,26 +227,23 @@ class HabitRecord {
             const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + this.habit.id);
             const habitRecordsOption = document.querySelector("option#timeRecorded" + this.id);
             const boxToRemove = document.querySelector("span#box" + this.id);
-            //debugger
+
+            //remove from all records
             HabitRecord.all.splice(HabitRecord.all.indexOf(this), 1);
-            //debugger
 
             // remove box from view if it is within 7 days
-            //debugger
             if ((boxToRemove !== null) && (checkIfInRange(this.timeOfRecord, "last7"))) {
-                //habitRecordBoxesDiv.removeChild(boxToRemove);
-                console.log(habitRecordBoxesTD);
                 habitRecordBoxesTD.removeChild(boxToRemove);
             }
 
             // retrieve records again
+            // TO-DO: POSSIBLE DUPLICATE IN REMOVE ADDEVENTLISTENER
             const habitRecordsConfigObject = HabitRecord.createGetRecordsConfig(this.habit);
             console.log(this.habit.id);
              fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${this.habit.id}&range=${range}`, habitRecordsConfigObject)
             .then(json => {
                 if (json['status']) {
                     habitEditRecordsSelect.innerHTML = "";
-                    //debugger
                     if ((json['record'] === undefined) || (json['record'].length === 0)) {
                         const optionRecord = document.createElement("option");
                         optionRecord.innerText = "No Records";
@@ -285,22 +260,10 @@ class HabitRecord {
                             habitEditRecordsSelect.appendChild(optionRecord);
                         })
                     }
-                }    
-                renderAllHabits(this.habit.user);            
-            }); 
-
-/*             if (checkIfInRange(record.timeOfRecord, document.getElementById("habitFilterRecordsToRemove" + this.habit.id).value)) {
-                habitEditRecordsSelect.removeChild(habitRecordsOption);
-                if (!habitEditRecordsSelect.hasChildNodes()) {
-                    const empty = document.createElement("option");
-                    empty.innerText = "No Records";
-                    empty.id = "optionNoRecords";
-                    empty.setAttribute("selected", "");
-                    empty.setAttribute("disabled", "");
-                    habitEditRecordsSelect.appendChild(empty);
                 }
-            } */
-            
+                renderHabitSummary(this.habit.user);
+            });
+
         }
     }
 

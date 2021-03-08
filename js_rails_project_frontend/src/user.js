@@ -4,7 +4,7 @@ class User {
     constructor(firstName="", email="", password="", authToken="", login_state=false) {
         this._email = email;
         this._firstName = firstName;
-        this._password = password; //needs encryption - do I need this ?
+        //this._password = password; //needs encryption - do I need this ?
         this._loggedIn = login_state;
         this._authToken = authToken;
         this._habits = [];
@@ -53,12 +53,6 @@ class User {
         return this._habits;
     }
 
-
-    fetch_json(action_path, configObject) {
-        return fetch(action_path, configObject)
-        .then(response => response.json())
-        .then(json => json)
-    }
 
     static renderLogin() {
         console.log("renderLogin")
@@ -124,8 +118,25 @@ class User {
         userAreaElement.appendChild(loginForm);
         userAreaElement.appendChild(signupBtn);
 
-        console.log(userAreaElement);
+    }
 
+    /* create post config to send fetch to signup user */
+    static createSignupConfig() {
+       // create configObject from form input
+        return {
+            method: 'post',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                'email': document.querySelector("#signupForm input#email").value,
+                'first_name': document.querySelector("#signupForm input#firstName").value,
+                'last_name': document.querySelector("#signupForm input#lastName").value,
+                'password': document.querySelector("#signupForm input#password").value,
+                'password_confirmation': document.querySelector("#signupForm input#passwordConfirmation").value
+            }),
+        };
     }
 
     static renderSignupForm() {
@@ -233,13 +244,28 @@ class User {
         userAreaElement.appendChild(signupFormElement);
     }
 
+    /* handles return json from signup state */
+    static handleSignup(json) {
+        console.log(">>>>> handleSignupConfig()")
+        if (json.status == 404) {
+            document.getElementById('error').innerHTML = "ERROR. Sign up failed."
+        } else if (json['status'] == true) {
+            document.getElementById('message').innerHTML = "Account Created. Please Log In."
+            this._first_name = json.first_name;
+            this._last_name = json.last_name;
+            this._email_address = json.email;
+            this._loggedIn = true;
+            this._id = json.id;
+            document.getElementById('user').innerHTML = "";
+        } else {
+            document.getElementById('message').innerHTML = json.message;
+        }
+    }
+
     createLoginConfig() {
-        //alert("Button pressed!");
-        let login_ok = false;
         let email = document.querySelector("#loginSubmitForm input#email").value;
         let password = document.querySelector("#loginSubmitForm input#password").value
 
-        //check validity of email
 
         let configObject = {
             method: 'post',
@@ -252,13 +278,13 @@ class User {
                 'password': password
             })
         };
-        this._password = password;
+        //this._password = password;
         return configObject;
     }
 
     /* handles return json from login state */
-   handleLoginConfig(json) {
-       console.log(">>>> handleLoginConfig(json)")
+    handleLogin(json) {
+       console.log("in handleLoginConfig(json)")
        const userElement = document.querySelector('#user');
        const messageElement = document.querySelector("#message");
        const textElement = document.createElement('p');
@@ -277,56 +303,6 @@ class User {
            this._email = json.email;
            this._loggedIn = true;
            this._id = json.id;
-           //Habit.renderAddHabitForm();
-        }
-    }
-
-    static createSignupConfig() {
-
-        // get info from form
-        const email = document.querySelector("#signupForm input#email").value;
-        const firstName = document.querySelector("#signupForm input#firstName").value;
-        const lastName = document.querySelector("#signupForm input#lastName").value;
-        const password = document.querySelector("#signupForm input#password").value;
-        const password_confirmation = document.querySelector("#signupForm input#passwordConfirmation").value;
-
-
-        // create configObject from form input
-        let configObject = {
-            method: 'post',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify({
-                'email': email,
-                'first_name': firstName,
-                'last_name': lastName,
-                'password': password,
-                'password_confirmation': password_confirmation
-            }),
-        };
-
-        return configObject;
-
-
-    }
-
-    static handleSignupConfig(json) {
-        console.log(">>>>> handleSignupConfig()")
-        if (json.status == 404) {
-            document.getElementById('message').innerHTML = "ERROR. Sign up failed."
-        } else if (json['status'] == true) {
-            document.getElementById('message').innerHTML = "Account Created. Please Log In."
-            this._first_name = json.first_name;
-            this._last_name = json.last_name;
-            this._email_address = json.email;
-            this._loggedIn = true;
-            this._id = json.id;
-            document.getElementById('user').innerHTML = "";
-        } else {
-            document.getElementById('message').innerHTML = json.message;
-            this._password = '';
         }
     }
 

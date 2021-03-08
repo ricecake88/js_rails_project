@@ -1,5 +1,6 @@
 
 class Habit {
+
     static all = [];
 
     constructor(id = -1, name, frequency_mode = "Everyday", num_for_streak = 7, streak_counter = 0,
@@ -32,38 +33,10 @@ class Habit {
         return this._user;
     }
 
-    createHabitNameSpan(habit) {
-        console.log(">>>>>createHabitNameSpan");
-        let mainHabitSpan = document.createElement("span");
-        mainHabitSpan.contentEditable = true;
-        mainHabitSpan.setAttribute("id", "habitNameSpan" + habit._id);
-        mainHabitSpan.setAttribute("class", "habitNameSpan");
-        mainHabitSpan.innerText = habit._name;
-        mainHabitSpan.addEventListener("dblclick", (e) => {
-            habit.toggleEdit(e, habit)
-        })
-        return mainHabitSpan;
-    }
-
-    createHabitFreqSpan(habit) {
-        console.log("createHabitFreqSpan")
-        let habitFreqModeSpan = document.createElement("span");
-        habitFreqModeSpan.contentEditable = true;
-        habitFreqModeSpan.setAttribute("id", "habitFreqModeSpan" + habit._id);
-        habitFreqModeSpan.innerText = habit._frequency_mode;
-        habitFreqModeSpan.addEventListener("dblclick", (e) => {
-            habit.toggleEdit(e, habit)}
-        )
-        return habitFreqModeSpan;
-    }
-
-    createHabitColorSpan(habit) {
-        console.log("createHabitColorSpan")
-    }
-
-    static createCfgAdd(user, habit) {
-        /* TO-DO: NEED TO CHANGE HABIT_CONTROLLER TO HANDLE NUM FOR STREAK BASED ON STREAK LEVEL */
-        let configObject = {
+    /* create config to add a habit */
+    static createCfgAdd(user) {
+        /* STRETCH GOAL: NEED TO CHANGE HABIT_CONTROLLER TO HANDLE NUM FOR STREAK BASED ON STREAK LEVEL */
+        return {
             method: 'post',
             headers: {
                 "Content-Type": "application/json",
@@ -75,14 +48,150 @@ class Habit {
                 'frequency_mode': document.querySelector("#habitForm select#frequency").value,
                 'streak_counter': 0,
                 'streak_level': document.querySelector("#habitForm select#streakLevel").value,
-                'num_for_streak': 7, /* TO-DO: DONT'T SET THIS WHEN PASSING THROUGH, DON'T PASS THROUGH */
+                'num_for_streak': 7, /* STRETCH GOAL: DONT'T SET THIS WHEN PASSING THROUGH, DON'T PASS THROUGH
+                            - TO DEAL WITH STREAK LEVELS */
                 'color': document.querySelector("#habitForm select#habitColor").value,
                 'user_id': user.id
             })
         };
-        return configObject;
     }
 
+    static renderAddHabitForm(user) {
+        console.log("in renderAddHabitForm()");
+        const userAreaElement = document.getElementById("user");
+        userAreaElement.innerHTML = "";
+
+        const habitForm = document.createElement("form");
+        habitForm.name = "habitForm";
+        habitForm.id = "habitForm";
+
+        const habitNameLabel = document.createElement("label");
+        habitNameLabel.innerText = "Habit: ";
+        const habitNameInput = document.createElement("input");
+        habitNameInput.id = "habitName"
+        habitNameInput.type = "text";
+        habitNameInput.placeholder = "Enter a habit";
+
+        const frequencyLabel = document.createElement("label");
+        frequencyLabel.innerText = "Goal: "
+        const frequencySelect = document.createElement("select");
+        frequencySelect.id = "frequency";
+        const goals = ["Everyday", "Every Other Day"];
+        goals.forEach(goal => {
+            const optionElement = document.createElement("option");
+            optionElement.value = goal;
+            optionElement.name = goal;
+            optionElement.innerText = goal;
+            frequencySelect.appendChild(optionElement);
+        })
+
+        const streakLevelLabel = document.createElement("label");
+        streakLevelLabel.innerText = "Streak Level: "
+        const streakLevelSelect = document.createElement("select");
+        streakLevelSelect.id = "streakLevel";
+        const streakLevels = ["Easy", "Medium", "Hard"];
+        // CAN REDUCE THIS IF NEEDED - TO SEPARATE FUNCTION
+        streakLevels.forEach(streakLevel => {
+            const optionElement = document.createElement("option");
+            optionElement.value = streakLevel;
+            optionElement.name = streakLevel;
+            optionElement.innerText = streakLevel;
+            streakLevelSelect.appendChild(optionElement);
+        })
+
+        const habitColorLabel = document.createElement("label");
+        habitColorLabel.innerText = "Color: "
+        const habitColorSelect = document.createElement("select");
+        habitColorSelect.id = "habitColor";
+        const colors = ["blue", "black", "green", "lightblue", "orange", "pink", "purple", "red", "yellow", "violet"]
+        colors.forEach(color => {
+            const option = document.createElement("option");
+            option.name = color
+            option.value = color
+            option.innerText = color
+            if (color === "pink") {
+                option.setAttribute("selected", "");
+            }
+            habitColorSelect.appendChild(option);
+        })
+
+        const colorChoice = document.createElement("span");
+        colorChoice.id = "colorChoice";
+        colorChoice.setAttribute("class", "box");
+        colorChoice.style.backgroundColor = "pink";
+
+        habitColorSelect.addEventListener("change", function(event) {
+            event.preventDefault();
+            document.getElementById("colorChoice").style.backgroundColor = document.getElementById("habitColor").value;
+        })
+
+        const submitHabit = document.createElement("button");
+        submitHabit.type = "submit";
+        submitHabit.value = "submitNewHabit";
+        submitHabit.name = "submitNewHabit";
+        submitHabit.innerText = "Add";
+
+
+        habitForm.append(habitNameLabel, habitNameInput);
+        habitForm.append(frequencyLabel, frequencySelect);
+        habitForm.append(streakLevelLabel, streakLevelSelect);
+        habitForm.append(habitColorLabel, habitColorSelect, colorChoice);
+        habitForm.appendChild(submitHabit);
+        userAreaElement.append(habitForm);
+    } // end renderAddHabitForm
+
+
+    static createHabit(user) {
+        console.log("in createHabit()")
+        fetchJSON(`${BACKEND_URL}/habits`, Habit.createCfgAdd(user))
+        .then(json => {
+            if (json['status'] == true) {
+                clearError();
+                document.querySelector("#habitForm input#habitName").value = "";
+                const createdHabit = new Habit(json['habit']['id'],
+                    json['habit']['name'],
+                    json['habit']['frequency_mode'],
+                    json['habit']['num_for_streak'],
+                    json['habit']['streak_counter'],
+                    json['habit']['streak_level'],
+                    json['habit']['color'],
+                    user);
+                createdHabit.renderHabit();
+            } else {
+                document.getElementById("error").innerText = json['errors'];
+            }
+        })
+    }
+
+    static handleHabits(user) {
+        console.log("in getHabits");
+        const config = user.createAuthConfig(user.authToken);
+        return fetchJSON(`${BACKEND_URL}/habits`, config)
+            .then(json => { Habit.renderHabits(json, user)})
+    }
+
+    static renderHabits(json, user) {
+        console.log("in renderHabits");
+        const message = document.querySelector("div#message");
+
+        if ((json['status'] == true) && (json['habits'])) {
+            if (json['habits'].length !== 0) {
+                renderHabitControlHead();
+                json['habits'].forEach(x => {
+                    let habit = new Habit(x.id, x.name, x.frequency_mode, x.num_for_streak, x.streak_counter,
+                        x.streak_level, x.color, user);
+                    habit.renderHabit(user);
+                })
+            }
+        } else {
+            if (json['message']) {
+                message.innerText = json['message'];
+                clearError();
+            }
+        }
+    } //end renderHabits
+
+    /* create cfg to retrieve habits */
     createCfgGetAuth() {
         return {
             method: 'GET',
@@ -92,56 +201,29 @@ class Habit {
         }
     }
 
-    createCfgUpdateName() {
+    /* create config to update a habit */
+    createCfgEdit(updatedHabit) {
         return {
             method: 'put',
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                "Authorization": "Bearer " + this._user.authToken
+                "Authorization": "Bearer " + updatedHabit._user.authToken
             },
             body: JSON.stringify({
-                'habit_id': this._id, /////this needs to be changed, the body, to match every change of habit
-                'name': value,
-                'user_id': this._user.id
+                'habit_id': updatedHabit._id,
+                'name': updatedHabit._name,
+                'streak_level': updatedHabit._streak_level,
+                'num_for_streak': updatedHabit._num_for_streak,
+                'streak_counter': updatedHabit._streak_counter,
+                'frequency_mode': updatedHabit._frequency_mode,
+                'color': updatedHabit._color,
+                'user_id': updatedHabit._user.id
             })
         }
     }
 
-    createCfgUpdateFrequency() {
-        let editConfig = {
-            method: 'put',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": "Bearer " + this._user.authToken
-            },
-            body: JSON.stringify({
-                'habit_id': this._id, /////this needs to be changed, the body, to match every change of habit
-                'name': value,
-                'user_id': this._user.id
-            })
-        }
-        return editConfig;
-    }
-
-    createCfgNewRecord() { // TO-DO: move this to HabitRecord?
-        let configObject = {
-            method: 'post',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": "Bearer " + this._user.authToken
-            },
-            body: JSON.stringify({
-                'habit_id': this._id,
-                'time_of_record': record.value,
-                'user_id': this._user.id
-            })
-        }
-        return configObject;
-    }
-
+    /* create config to delete a habit */
     createCfgDelete() {
         return {
             method: 'delete',
@@ -155,6 +237,21 @@ class Habit {
                 'name': this._name
             })
         }
+    }
+
+    /* create editable span element to edit a habit */
+    createEditableSpanElement(habit, name, text) {
+        console.log("in in createEditableSpanElement");
+        const spanElement = document.createElement("span");
+        spanElement.contentEditable = true;
+        spanElement.setAttribute("id", name + habit._id);
+        spanElement.setAttribute("class", name);
+        spanElement.innerText = text;
+        spanElement.addEventListener("click", (e) => {
+            console.log("double click to change habit name");
+            habit.toggleEdit(e, habit)
+        })
+        return spanElement;
     }
 
     deleteHabit(e) {
@@ -171,46 +268,29 @@ class Habit {
                 Habit.all = Habit.all.filter(element => {
                     return element._id != this._id;
                 })
+                renderHabitSummary(this._user);
             })
     }
 
     updateHabit(e, habitCell, copiedHabit) {
         e.preventDefault();
-        let editConfig = {
-            method: 'put',
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": "Bearer " + this._user.authToken
-            },
-            body: JSON.stringify({
-                'habit_id': copiedHabit._id,
-                'name': copiedHabit._name,
-                'streak_level': copiedHabit._streak_level,
-                'num_for_streak': copiedHabit._num_for_streak,
-                'streak_counter': copiedHabit._streak_counter,
-                'frequency_mode': copiedHabit._frequency_mode,
-                'color': copiedHabit._color,
-                'user_id': copiedHabit._user.id
-            })
-        }
-        fetchJSON(`${BACKEND_URL}/habits/${this._id}`, editConfig)
+        fetchJSON(`${BACKEND_URL}/habits/${this._id}`, this.createCfgEdit(copiedHabit))
             .then(json => {
-                let textAgain = null
+                 let originalSpanElement = null;
                 if (habitCell.firstChild.id.includes("habitNameSpan")) {
                     this._name = json['habit']['name'];
-                    textAgain = this.createHabitNameSpan(this);
+                    originalSpanElement = this.createEditableSpanElement(this, "habitNameSpan", this._name);
                     habitCell.innerHTML = "";
-                    habitCell.appendChild(textAgain);
+                    habitCell.appendChild(originalSpanElement);
                 } else if (habitCell.firstChild.id.includes("habitFreqModeSpan")) {
                     this._frequency_mode = json['habit']['frequency_mode'];
-                    textAgain = this.createHabitFreqSpan(this);
+                    originalSpanElement = this.createEditableSpanElement(this, "habitFreqModeSpan", this._frequency_mode);
                     habitCell.innerHTML = "";
-                    habitCell.appendChild(textAgain);
+                    habitCell.appendChild(originalSpanElement);
                 } else if (habitCell.firstChild.id.includes("editColorSelect")) {
                     this._color = json['habit']['color'];
-                    const textAgain = document.getElementById("editColorBox" + json['habit']['id'])
-                    textAgain.style.backgroundColor = this._color;
+                    originalSpanElement = document.getElementById("editColorBox" + json['habit']['id'])
+                    originalSpanElement.style.backgroundColor = this._color;
                     const recordsTD = document.getElementById("recordsTD" + json['habit']['id'])
                     const boxes = recordsTD.getElementsByClassName("boxAll");
                     Array.from(boxes).forEach(function(box) {box.style.backgroundColor = json['habit']['color']});
@@ -271,6 +351,21 @@ class Habit {
         }
     }
 
+    toggleRecordsControl(e) {
+        e.preventDefault();
+        const regex = /[0-9]+/;
+        let id = e.target.id.match(regex)[0];
+
+        let habitShowRow = document.getElementById("habitRecordsControl" + id);
+        if (habitShowRow.style.visibility == "hidden") {
+            habitShowRow.style.visibility = "visible";
+            habitShowRow.style.display = 'table-row'
+        } else {
+            habitShowRow.style.visibility = "hidden";
+            habitShowRow.style.display = 'none';
+        }
+    }
+
     renderColorSelect(element, habit) {
         // -- Color Box Field -- //
         const colorSelect = document.createElement("select");
@@ -294,26 +389,23 @@ class Habit {
 
         element.append(colorSelect, colorBox);
         colorSelect.addEventListener("click", (e) => {
-            console.log(e.target);
             e.preventDefault();
             e.target.focus();
             colorBox.style.backgroundColor = colorSelect.value;
             e.target.onblur = (e) => {
-                console.log("test");
-                const tmpHabit = Object.assign({}, habit);
-                tmpHabit._color = colorSelect.value;
-                console.log(tmpHabit);
+                const copyOfHabit = Object.assign({}, habit);
+                copyOfHabit._color = colorSelect.value;
                 const progress = document.getElementById("habit7DayProgressDiv" + habit.id);
                 const boxes = progress.getElementsByClassName("box");
                 Array.from(boxes).forEach(function(box) { box.style.backgroundColor = colorSelect.value});
-                this.updateHabit(e, element, tmpHabit);
+                this.updateHabit(e, element, copyOfHabit);
             }
         });
 
     }
 
-    renderHabit2() {
-        console.log(">>>renderHabit2()");
+    renderHabit() {
+        console.log(">>>renderHabit()");
 
         const habitTable = document.querySelector("table#habitTable");
 
@@ -340,7 +432,7 @@ class Habit {
             habitNameTD.setAttribute("id", "habitNameDiv" + this._id);
 
                 // --- Name Field -- //
-                const mainHabitSpan = this.createHabitNameSpan(this);
+                const mainHabitSpan = this.createEditableSpanElement(this, "habitNameSpan", this._name);
 
             habitNameTD.appendChild(mainHabitSpan);
 
@@ -377,8 +469,7 @@ class Habit {
             mainHabitFreqTD.setAttribute("id", "freqCell" + this._id);
 
                 //-- Goal/Frequency Span Element -- //
-                const mainHabitFreqSpan = this.createHabitFreqSpan(this); // TO-DO: why isn't the sameas createHabitNameSpan?? - same method possible?
-                mainHabitFreqSpan.innerText = this._frequency_mode;
+                const mainHabitFreqSpan = this.createEditableSpanElement(this, "habitFreqModeSpan", this._frequency_mode);
 
                 mainHabitFreqTD.appendChild(mainHabitFreqSpan);
 
@@ -423,20 +514,14 @@ class Habit {
             logAndDeleteHabitRecordTD.append(logRecordSpan, slash, removeRecordSpan);
 
         // ---- add listeners for elements in row one ----------//
-        logAndDeleteHabitRecordTD.addEventListener("click", toggleRecordsControl2);
+        logAndDeleteHabitRecordTD.addEventListener("click", this.toggleRecordsControl.bind(this));
         habitRemoveDeleteBtn.addEventListener("click", this.deleteHabit.bind(this));
-        habitRemoveDeleteBtn.addEventListener("click", renderAllHabits(this._user));
-        firstHabitRow.append(habitRemoveTD, habitNameTD, colorChoiceTD, mainHabitFreqTD, sevenDayProgressTD, logAndDeleteHabitRecordTD);
-
+        habitRemoveDeleteBtn.addEventListener("click", renderHabitSummary(this._user));
+        firstHabitRow.append(habitRemoveTD, habitNameTD, colorChoiceTD, mainHabitFreqTD, sevenDayProgressTD,
+            logAndDeleteHabitRecordTD);
 
 
         // -------------------- second row  -------------------//
-        //const secondHabitRow = document.createElement("div");
-        //secondHabitRow.setAttribute("class", "habit-row");
-        //secondHabitRow.setAttribute("id", "habitRecordsControl" + this._id)
-        //secondHabitRow.style.visibility = "hidden";
-        //secondHabitRow.style.display = "none";
-
         const secondHabitRow = document.createElement("tr");
         //secondHabitRow.setAttribute("class", "habit-row");
         secondHabitRow.setAttribute("id", "habitRecordsControl" + this._id)
@@ -551,186 +636,14 @@ class Habit {
                     }
                 }
             });
-        }) 
-        console.log("Habit Table")
-        console.log(habitTable);
-    }
-
-    static renderAddHabitForm() {
-        console.log(">>>>>> renderAddHabitForm()");
-        const userAreaElement = document.getElementById("user");
-        userAreaElement.innerHTML = "";
-
-        const habitForm = document.createElement("form");
-        habitForm.name = "habitForm";
-        habitForm.id = "habitForm";
-
-        const habitNameLabel = document.createElement("label");
-        habitNameLabel.innerText = "Habit: ";
-        const habitNameInput = document.createElement("input");
-        habitNameInput.id = "habitName"
-        habitNameInput.type = "text";
-        habitNameInput.placeholder = "Enter a habit";
-
-        const frequencyLabel = document.createElement("label");
-        frequencyLabel.innerText = "Goal: "
-        const frequencySelect = document.createElement("select");
-        frequencySelect.id = "frequency";
-        const goals = ["Everyday", "Every Other Day"];
-        goals.forEach(goal => {
-            const optionElement = document.createElement("option");
-            optionElement.value = goal;
-            optionElement.name = goal;
-            optionElement.innerText = goal;
-            frequencySelect.appendChild(optionElement);
-        })
-
-        const streakLevelLabel = document.createElement("label");
-        streakLevelLabel.innerText = "Streak Level: "
-        const streakLevelSelect = document.createElement("select");
-        streakLevelSelect.id = "streakLevel";
-        const streakLevels = ["Easy", "Medium", "Hard"];
-        // CAN REDUCE THIS IF NEEDED - TO SEPARATE FUNCTION
-        streakLevels.forEach(streakLevel => {
-            const optionElement = document.createElement("option");
-            optionElement.value = streakLevel;
-            optionElement.name = streakLevel;
-            optionElement.innerText = streakLevel;
-            streakLevelSelect.appendChild(optionElement);
-        })
-
-        const habitColorLabel = document.createElement("label");
-        habitColorLabel.innerText = "Color: "
-        const habitColorSelect = document.createElement("select");
-        habitColorSelect.id = "habitColor";
-        const colors = ["blue", "black", "green", "lightblue", "orange", "pink", "purple", "red", "yellow", "violet"]
-        colors.forEach(color => {
-            const option = document.createElement("option");
-            option.name = color
-            option.value = color
-            option.innerText = color
-            if (color === "pink") {
-                option.setAttribute("selected", "");
-            }
-            habitColorSelect.appendChild(option);
-        })
-
-        const colorChoice = document.createElement("span");
-        colorChoice.id = "colorChoice";
-        colorChoice.setAttribute("class", "box");
-        colorChoice.style.backgroundColor = "pink";
-
-        habitColorSelect.addEventListener("change", function(event) {
-            event.preventDefault();
-            document.getElementById("colorChoice").style.backgroundColor = document.getElementById("habitColor").value;
-        })
-
-        const submitHabit = document.createElement("button");
-        submitHabit.type = "submit";
-        submitHabit.value = "submitNewHabit";
-        submitHabit.name = "submitNewHabit";
-        submitHabit.innerText = "Add";
-
-
-        habitForm.append(habitNameLabel, habitNameInput);
-        habitForm.append(frequencyLabel, frequencySelect);
-        habitForm.append(streakLevelLabel, streakLevelSelect);
-        habitForm.append(habitColorLabel, habitColorSelect, colorChoice);
-        habitForm.appendChild(submitHabit);
-        userAreaElement.append(habitForm);
-    }
-
-    static createHabit(user) {
-        console.log(">>> createHabit()")
-        const addConfigObject = Habit.createCfgAdd(user);
-        fetchJSON(`${BACKEND_URL}/habits`, addConfigObject)
-        .then(json => {
-            /* TO-DO NEED TO FIX THIS UP WITH PROPER ERROR MESSAGE HANDLING */
-            if (json['status'] == true) {
-                console.log("Status is true, why not stop");
-                document.querySelector("#habitForm input#habitName").value = "";
-                const createdHabit = new Habit(json['habit']['id'],
-                    json['habit']['name'],
-                    json['habit']['frequency_mode'],
-                    json['habit']['num_for_streak'],
-                    json['habit']['streak_counter'],
-                    json['habit']['streak_level'],
-                    json['habit']['color'],
-                    user);
-                createdHabit.renderHabit2();
-            } else {
-                document.getElementById("error").innerText = json['errors'];
-            }
         })
     }
 
-    static getHabits(user) {
-        console.log(">>>> getHabits()");
-        let config = user.createAuthConfig(user.authToken);
-        return fetchJSON(`${BACKEND_URL}/habits`, config)
-            .then(json => {
-                Habit.renderHabits2(json, user);
-            })
-    }
-
-    static renderHabits2(json, user) {
-        console.log(">>>>>renderHabits2");
-        const message = document.querySelector("div#message");
-
-        renderHabitControlHead();
-
-        if ((json['status'] == true) && (json['habits'])) {
-            json['habits'].forEach(x => {
-                let habit = new Habit(x.id, x.name, x.frequency_mode, x.num_for_streak, x.streak_counter,
-                    x.streak_level, x.color, user);
-                habit.renderHabit2(user);
-            })
-        } else {
-            if (json['message']) {
-                message.innerText = json['message'];
-                document.querySelector("div#error") = '';
-            }
-        }
-    } //end renderHabits
 }
 
 
-function toggleRecordsControl2(e) {
-
-    console.log(e.target);
-    e.preventDefault();
-    const regex = /[0-9]+/;
-    let id = e.target.id.match(regex)[0];
-
-    let habitShowRow = document.getElementById("habitRecordsControl" + id);
-    if (habitShowRow.style.visibility == "hidden") {
-        habitShowRow.style.visibility = "visible";
-        habitShowRow.style.display = 'table-row'
-    } else {
-        habitShowRow.style.visibility = "hidden";
-        habitShowRow.style.display = 'none';
-    }
-}
-
-function toggleRecordsControl(e) {
-
-    console.log(e.target);
-    e.preventDefault();
-    const regex = /[0-9]+/;
-    let id = e.target.id.match(regex)[0];
-    let habitShowRow = document.getElementById("habitRecordsControl" + id);
-    if (habitShowRow.style.visibility == "hidden") {
-        habitShowRow.style.visibility = "visible";
-        habitShowRow.style.display = 'table-row'
-    } else {
-        habitShowRow.style.visibility = "hidden";
-        habitShowRow.style.display = 'none';
-    }
-}
-
-function filterHabitRecords(e, user) {
+/* function filterHabitRecords(e, user) {
     console.log("clicked Filter Submit button");
-    console.log(e.target);
     e.preventDefault();
     showHabits(user);
 }
@@ -750,6 +663,7 @@ function showHabits(user) {
             json['habits'].forEach(habit => {
                 const habitRowElement = document.createElement("tr");
                 const habitNameTD = document.createElement("td");
+                const recordsTotalTD = document.createElement("td");
                 const recordsTD = document.createElement("td");
                 const habitSpanElement = document.createElement("span");
 
@@ -758,8 +672,9 @@ function showHabits(user) {
                 habitSpanElement.setAttribute("class", "habit-cell");
                 habitSpanElement.innerText = habit.name;
                 recordsTD.id = "recordsTD" + habit.id;
+
                 habitNameTD.appendChild(habitSpanElement);
-                habitRowElement.append(habitNameTD, recordsTD);
+                habitRowElement.append(habitNameTD, recordsTotalTD, recordsTD);
                 habitTableElement.append(habitRowElement);
                 user.habits.push(habit);
 
@@ -783,6 +698,7 @@ function showHabits(user) {
                                 box.style.backgroundColor = habit.color;
                                 recordsTD.append(box);
                             })
+                            recordsTotalTD.innerText = json['record'].length;
                             habitRowElement.appendChild(recordsTD);
                         }
                     })
@@ -792,9 +708,9 @@ function showHabits(user) {
 
         }
     })
-}
+} */
 
-function getFilteredHabitRecords(user, habit) {
+/* function getFilteredHabitRecords(user, habit) {
     let config = user.createAuthConfig(user.authToken);
 
     const filterRange = (document.querySelector("select#selectFilterHabits").value == null) ? "last7" :
@@ -837,7 +753,7 @@ function renderAllHabits(user) {
         allHabitsFilterSelect.id = "selectFilterHabits";
         allHabitsFilterSelect.innerHTML =
         `
-        <option value="" disable selected>Filter Range
+        <option value="" disabled selected>Filter Range
         <option name="last7" value="last7" selected>Last Seven Days
         <option name="lastMonth" value="lastMonth">Last Month
         <option name="currentMonth" value="currentMonth">Current Month
@@ -866,4 +782,4 @@ function renderAllHabits(user) {
 
 
 
-}
+} */
