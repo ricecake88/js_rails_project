@@ -4,9 +4,8 @@ body,input, select, button {
     font: 12pt Verdana, sans-serif;
 }
 
-table, th, td {
+tr, th, td {
     border: 1px solid black;
-    font-size: 15px;
 }
 
 div.hidden {
@@ -29,13 +28,6 @@ button#signupLink {
     background:none;
     padding: 0;
     color: blue;
-}
-
-.habit-table-container {
-    display: table;
-    margin: 10px;
-    border: 1px solid purple;
-
 }
 
 .habit-row {
