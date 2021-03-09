@@ -41,7 +41,7 @@ function monitorUserArea(user) {
                             fetchJSON(`${BACKEND_URL}/habits`, authConfig)
                             .then(json => {
                                 user.handleLogin(json);
-                                Habit.renderAddHabitForm(user);
+                                Habit.renderAddHabitForm();
                                 Habit.handleHabits(user);
                                 renderHabitSummary(user);
                             })
@@ -62,7 +62,7 @@ function monitorUserArea(user) {
                 });
                 break;
             case "habitForm":
-                Habit.createHabit(user);
+                Habit.handleAddHabit(user);
                 break;
             default:
                 break;

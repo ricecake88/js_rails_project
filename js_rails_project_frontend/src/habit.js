@@ -56,7 +56,59 @@ class Habit {
         };
     }
 
-    static renderAddHabitForm(user) {
+    /* called from main page to get all habits
+    to display */
+    static handleHabits(user) {
+        Habit.getHabits(user).then(json => this.renderHabits(json, user))
+    }
+
+    /* send request to server to retrieve users */
+    static getHabits(user) {
+        return fetchJSON(`${BACKEND_URL}/habits`, user.createAuthConfig(user.authToken))
+        .then(json => json);
+    }
+
+    /* render all habits retrieved from server */
+    static renderHabits(json, user) {
+        if ((json['status'] == true) && (json['habits'])) {
+            if (json['habits'].length !== 0) {
+                renderHabitControlHead();
+                json['habits'].forEach(habit => {
+                    const newHabit = new Habit(habit.id, habit.name, habit.frequency_mode, habit.num_for_streak, habit.streak_counter,
+                        habit.streak_level, habit.color, user);
+                    newHabit.renderHabit(user);
+
+                    // initialize and fill up HabitRecord with records related to habit
+                    HabitRecord.handleAllRecords(newHabit);
+
+                    // render drop down menu to filter out records to remove
+                    newHabit.handleSelectedRecords();
+
+                    // render the record boxes to display last 7 days
+                    newHabit.handle7DayRecords();
+                })
+            }
+        } else {
+            if (json['message']) {
+                const message = document.querySelector("div#message");
+                message.innerText = json['message'];
+                clearError();
+            }
+        }
+    } //end renderHabits
+
+    /* create cfg to retrieve habits */
+    createCfgGetAuth() {
+        return {
+            method: 'GET',
+            headers: {
+                "Authorization": "Bearer " + this._user.authToken
+            },
+        }
+    }
+
+    /* render form to add habit */
+    static renderAddHabitForm() {
         console.log("in renderAddHabitForm()");
         const userAreaElement = document.getElementById("user");
         userAreaElement.innerHTML = "";
@@ -120,6 +172,7 @@ class Habit {
         colorChoice.setAttribute("class", "box");
         colorChoice.style.backgroundColor = "pink";
 
+        /* change color box to match selected color */
         habitColorSelect.addEventListener("change", function(event) {
             event.preventDefault();
             document.getElementById("colorChoice").style.backgroundColor = document.getElementById("habitColor").value;
@@ -140,71 +193,40 @@ class Habit {
         userAreaElement.append(habitForm);
     } // end renderAddHabitForm
 
-
-    static createHabit(user) {
-        console.log("in createHabit()")
-        fetchJSON(`${BACKEND_URL}/habits`, Habit.createCfgAdd(user))
-        .then(json => {
-            if (json['status'] == true) {
-                clearError();
-                document.querySelector("#habitForm input#habitName").value = "";
-                const createdHabit = new Habit(json['habit']['id'],
-                    json['habit']['name'],
-                    json['habit']['frequency_mode'],
-                    json['habit']['num_for_streak'],
-                    json['habit']['streak_counter'],
-                    json['habit']['streak_level'],
-                    json['habit']['color'],
-                    user);
-                createdHabit.renderHabit();
-            } else {
-                document.getElementById("error").innerText = json['errors'];
-            }
-        })
+    static handleAddHabit(user) {
+        this.postHabit(user).then(json => this.handleNewHabit(json, user));
     }
 
-    static handleHabits(user) {
-        console.log("in getHabits");
-        const config = user.createAuthConfig(user.authToken);
-        return fetchJSON(`${BACKEND_URL}/habits`, config)
-            .then(json => { Habit.renderHabits(json, user)})
+    static postHabit(user) {
+        return fetchJSON(`${BACKEND_URL}/habits`, Habit.createCfgAdd(user))
+        .then(json => json);
     }
 
-    static renderHabits(json, user) {
-        console.log("in renderHabits");
-        const message = document.querySelector("div#message");
+    static handleNewHabit(json, user) {
+        if (json['status'] == true) {
 
-        if ((json['status'] == true) && (json['habits'])) {
-            if (json['habits'].length !== 0) {
+            // clear any errors that are displayed
+            clearError();
+
+            // clear habit name field
+            document.querySelector("#habitForm input#habitName").value = "";
+            if (this.all.length === 0) {
                 renderHabitControlHead();
-                json['habits'].forEach(x => {
-                    let habit = new Habit(x.id, x.name, x.frequency_mode, x.num_for_streak, x.streak_counter,
-                        x.streak_level, x.color, user);
-                    habit.renderHabit(user);
-                    HabitRecord.handleAllRecords(habit);
-
-                    // render drop down menu to filter out records to remove
-                    habit.handleSelectedRecords();
-
-                    // render the record boxes to display last 7 days
-                    habit.handle7DayRecords();
-                })
             }
+
+            // create new Habit in all Habits
+            const createdHabit = new Habit(json['habit']['id'],
+                json['habit']['name'],
+                json['habit']['frequency_mode'],
+                json['habit']['num_for_streak'],
+                json['habit']['streak_counter'],
+                json['habit']['streak_level'],
+                json['habit']['color'],
+                user);
+
+            createdHabit.renderHabit();
         } else {
-            if (json['message']) {
-                message.innerText = json['message'];
-                clearError();
-            }
-        }
-    } //end renderHabits
-
-    /* create cfg to retrieve habits */
-    createCfgGetAuth() {
-        return {
-            method: 'GET',
-            headers: {
-                "Authorization": "Bearer " + this._user.authToken
-            },
+            document.getElementById("error").innerText = json['errors'];
         }
     }
 
@@ -359,17 +381,19 @@ class Habit {
     }
 
     toggleRecordsControl(e) {
-        e.preventDefault();
-        const regex = /[0-9]+/;
-        let id = e.target.id.match(regex)[0];
-
-        let habitShowRow = document.getElementById("habitRecordsControl" + id);
-        if (habitShowRow.style.visibility == "hidden") {
-            habitShowRow.style.visibility = "visible";
-            habitShowRow.style.display = 'table-row'
-        } else {
-            habitShowRow.style.visibility = "hidden";
-            habitShowRow.style.display = 'none';
+        console.log("in toggle records control")
+        console.log(e.target.id);
+        const id = e.target.id.match(/[0-9]+/)[0];
+        const habitShowRow = document.getElementById("habitRecordsControl" + id);
+        if (e.target.id.includes("logRecordSpan")) {
+                habitShowRow.setAttribute("class", "show");
+                document.getElementById("habitRecordsSubmitCell" + id).setAttribute("class", "show");
+                document.getElementById("habitRecordsRemoveDateCell" + id).setAttribute("class", "hidden");
+        }
+        if (e.target.id.includes("removeRecordSpan")) {
+                habitShowRow.setAttribute("class", "show");
+                document.getElementById("habitRecordsSubmitCell" + id).setAttribute("class", "hidden");
+                document.getElementById("habitRecordsRemoveDateCell" + id).setAttribute("class", "show");
         }
     }
 
@@ -474,13 +498,7 @@ class Habit {
                 logRecordSpan.setAttribute("class", "material-icons-outlined mdIcon");
                 logRecordSpan.innerText = "add";
                 logRecordSpan.setAttribute("id", "logRecordSpan" + this._id);
-                logRecordSpan.addEventListener("click", (event) => {
-                    event.preventDefault();
-                    document.getElementById("habitRecordsSubmitCell" + this._id).style.visibility = "visible";
-                    document.getElementById("habitRecordsSubmitCell" + this._id).style.display = "block";
-                    document.getElementById("habitRecordsRemoveDateCell" + this._id).style.visibility = "hidden";
-                    document.getElementById("habitRecordsRemoveDateCell" + this._id).style.display = "none";
-                })
+
 
                 const slash = document.createElement("span");
                 slash.innerText = "/";
@@ -489,46 +507,55 @@ class Habit {
                 removeRecordSpan.setAttribute("class", "material-icons-outlined mdIcon");
                 removeRecordSpan.innerText = "remove";
                 removeRecordSpan.id = "removeRecordSpan" + this._id;
-                removeRecordSpan.addEventListener("click", (event) => {
-                    event.preventDefault();
-                    document.getElementById("habitRecordsRemoveDateCell" + this._id).style.visibility = "visible";
-                    document.getElementById("habitRecordsRemoveDateCell" + this._id).style.display = "block";
-                    document.getElementById("habitRecordsSubmitCell" + this._id).style.visibility = "hidden";
-                    document.getElementById("habitRecordsSubmitCell" + this._id).style.display = "none";
-                })
 
             logAndDeleteHabitRecordTD.append(logRecordSpan, slash, removeRecordSpan);
 
-        // ---- add listeners for elements in row one ----------//
-        logAndDeleteHabitRecordTD.addEventListener("click", this.toggleRecordsControl.bind(this));
-        habitRemoveDeleteBtn.addEventListener("click", this.deleteHabit.bind(this));
-        habitRemoveDeleteBtn.addEventListener("click", renderHabitSummary(this._user));
         firstHabitRow.append(habitRemoveTD, habitNameTD, colorChoiceTD, mainHabitFreqTD, sevenDayProgressTD,
             logAndDeleteHabitRecordTD);
+
+        // ---- add listeners for elements in row one ----------//
+        logRecordSpan.addEventListener("click", (event) => {  this.toggleRecordsControl(event)})
+        removeRecordSpan.addEventListener("click", (event) => { this.toggleRecordsControl(event)})
+        habitRemoveDeleteBtn.addEventListener("click", this.deleteHabit.bind(this));
+        habitRemoveDeleteBtn.addEventListener("click", renderHabitSummary(this._user));
 
 
         // -------------------- second row  -------------------//
         const secondHabitRow = document.createElement("tr");
         //secondHabitRow.setAttribute("class", "habit-row");
         secondHabitRow.setAttribute("id", "habitRecordsControl" + this._id)
-        secondHabitRow.style.visibility = "hidden";
-        secondHabitRow.style.display = "none";
+        secondHabitRow.setAttribute("class", "hidden");
+        window.addEventListener("click", event => {
+            console.log(secondHabitRow);
+            console.log(event.target.id)
+            if ((!secondHabitRow.contains(event.target)) &&
+               ((!event.target.id.includes("logRecordSpan") && (!event.target.id.includes("removeRecordSpan"))))) {
+                 if (secondHabitRow.className === "show") {
+                    secondHabitRow.setAttribute("class", "hidden");
+                    document.getElementById("habitRecordsSubmitCell" + this._id).setAttribute("class", "hidden");
+                    document.getElementById("habitRecordsRemoveDateCell" + this._id).setAttribute("class", "hidden");
+                }
+            }
+        })
+
 
         //--cell with to submit a record and remove a record --//
         const habitRecordsControlTD = document.createElement("td");
-        habitRecordsControlTD.setAttribute("class", "habit-cell");
         habitRecordsControlTD.id = "habitRecordSubmitDateCell" + this._id;
         habitRecordsControlTD.setAttribute("colspan", "6");
 
+
             const habitRecordsSubmitDateToggleCell = document.createElement("div");
             habitRecordsSubmitDateToggleCell.id = "habitRecordsSubmitCell" + this._id;
-            habitRecordsSubmitDateToggleCell.style.visibility = "visible";
-            //habitRecordsSubmitDateToggleCell.style.display = "none";
+            habitRecordsSubmitDateToggleCell.setAttribute("class", "hidden");
+
 
                 //-- input element to enter a date --//
                 const habitRecordsSubmitDateInput = document.createElement("input");
                 habitRecordsSubmitDateInput.type = "date";
                 habitRecordsSubmitDateInput.id = "habitRecordDateInput" + this._id;
+                habitRecordsSubmitDateInput.setAttribute("class", "habitRecordInput");
+
 
                 const habitRecordsSubmitDateBtn = document.createElement("button");
                 habitRecordsSubmitDateBtn.id = 'submitRecHabit' + this._id;
@@ -540,8 +567,8 @@ class Habit {
 
             const habitRecordsRemoveDateToggleCell = document.createElement("div");
             habitRecordsRemoveDateToggleCell.id = "habitRecordsRemoveDateCell" + this._id;
-            habitRecordsRemoveDateToggleCell.style.visibility = "visible";
-            //habitRecordsRemoveDateToggleCell.style.display = "none";
+            habitRecordsRemoveDateToggleCell.setAttribute("class", "hidden");
+
 
                 //--filter record elements --//
                 const habitRecordsToRemoveSelect = document.createElement("select");
@@ -573,12 +600,10 @@ class Habit {
 
         /* Habit Records Control TD to either log a habit or remove
             a habit*/
-        habitRecordsControlTD.append(habitRecordsSubmitDateToggleCell);
-        habitRecordsControlTD.append(habitRecordsRemoveDateToggleCell);
+        habitRecordsControlTD.append(habitRecordsSubmitDateToggleCell, habitRecordsRemoveDateToggleCell);
         secondHabitRow.appendChild(habitRecordsControlTD);
 
-        habitTable.appendChild(firstHabitRow);
-        habitTable.appendChild(secondHabitRow);
+        habitTable.append(firstHabitRow, secondHabitRow);
 
         habitRecordsSubmitDateBtn.addEventListener("click", () => {
             HabitRecord.handleNewRecord(this);
@@ -620,6 +645,7 @@ class Habit {
                 }
             });
         })
+        console.log(habitTable)
     }// end render Habit
 
     handle7DayRecords() {
