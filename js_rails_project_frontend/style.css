@@ -4,16 +4,23 @@ body,input, select, button {
     font: 12pt Verdana, sans-serif;
 }
 
+table {
+    margin: 10px;
+    border-spacing:0;
+    border-collapse: collapse;
+}
 tr, th, td {
     border: 1px solid black;
 }
 
 div.hidden {
     display:none;
+    visibility: hidden;
 }
 
 div.show {
     display:block;
+    visibility: visible;
 }
 
 div#error {
@@ -30,11 +37,10 @@ button#signupLink {
     color: blue;
 }
 
-.habit-row {
+/*.habit-row {
     display: table-row;
-    border: 1px solid green;
-    margin: 10px;
-}
+    padding: 10px;
+}*/
 
 .habit-cell {
     padding: 10px;
@@ -42,27 +48,21 @@ button#signupLink {
 .habit-freq {
     text-decoration:underline;
     width: 100px;
-    padding: 5px;
     padding: 10px;
 }
 
 .X {
-
-    border: 1px solid red;
     padding: 10px;
 }
 
 .habit-name {
     text-decoration:underline;
     width: 250px;
-    padding: 5px;
     padding: 10px;
 }
 
-/*.habitNameSpan*/
-select {
-    margin-left: 10px;
-    margin-right: 10px;
+select, input.habitRecordInput {
+    margin:10px;
 }
 
 .habit-progress {
