@@ -39,6 +39,12 @@ button#signupLink {
 .habit-cell {
     padding: 10px;
 }
+.habit-freq {
+    text-decoration:underline;
+    width: 100px;
+    padding: 5px;
+    padding: 10px;
+}
 
 .X {
 
