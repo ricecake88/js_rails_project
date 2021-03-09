@@ -54,7 +54,7 @@ class HabitRecord {
     }
 
     static createAddRecordConfig(habit) {
-        console.log(">>>>> HabitRecord :: createAddRecordConfig");
+        console.log("HabitRecord :: createAddRecordConfig");
         let record = document.getElementById('habitRecordDateInput' + habit.id);
         return {
             method: 'post',
@@ -96,55 +96,85 @@ class HabitRecord {
         }
     }
 
-    static handleHabitRecords(habit) {
+    render7Day(habitRecordBoxesTD) {
+        //const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + this._habit.id);
 
-        console.log(">>> renderHabitRecords(habit)");
-        HabitRecord.getRecords(habit).then(function(json) {
-            HabitRecord.renderRecords(json, habit);
+        if (checkIfInRange(this._timeOfRecord, "last7")) {
+            const box = document.createElement("span");
+            box.setAttribute("class", "box");
+            box.id = "box" + this._id;
+            box.style.backgroundColor = this._habit.color;
+            habitRecordBoxesTD.appendChild(box);
+        }
+    }
+
+    static renderSelectRecords(json, selectElement) {
+        if (json['status']) {
+
+            selectElement.innerHTML = "";
+            if ((json['record'] === undefined) || (json['record'].length === 0)) {
+                const optionRecord = document.createElement("option");
+                optionRecord.innerText = "No Records";
+                optionRecord.value = "";
+                optionRecord.setAttribute("disabled", "");
+                optionRecord.setAttribute("selected", "");
+                selectElement.appendChild(optionRecord);
+            } else {
+                json['record'].forEach(record => {
+                    const optionRecord = document.createElement("option");
+                    optionRecord.setAttribute("value", record['time_of_record']);
+                    optionRecord.setAttribute("id", "timeRecorded" + record['id'])
+                    optionRecord.innerText = record['time_of_record'];
+                    selectElement.appendChild(optionRecord);
+                })
+            }
+        }
+    }
+
+    static handleAllRecords(habit) {
+        HabitRecord.getAllRecords(habit).then(function(json) {
+            HabitRecord.initializeRecords(json, habit);
          })
     }
 
-    static getRecords(habit) {
-        const habitRecordsConfigObject = HabitRecord.createGetRecordsConfig(habit);
+    static get7DayProgress(json, habit) {
+        if (json['status'] && json['record'] !== undefined) {
+            const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
+            habitRecordBoxesTD.innerHTML = "";
+            json['record'].forEach(rec => {
+                //find record
+                const record = HabitRecord.all.find(r => r.id === rec['id']);
+                record.render7Day(habitRecordBoxesTD);
+            })
+        }
+    }
 
+    static getFilteredRecords(range, habit) {
+        const habitRecordsConfigObject = HabitRecord.createGetRecordsConfig(habit);
+        console.log(habitRecordsConfigObject);
+        return fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${habit.id}&range=${range}`, habitRecordsConfigObject)
+        .then(json => json);
+    }
+
+    static getAllRecords(habit) {
+        const habitRecordsConfigObject = this.createGetRecordsConfig(habit);
+        console.log(habitRecordsConfigObject);
         return fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${habit.id}&range=all`, habitRecordsConfigObject)
         .then(json => json);
     }
 
-    static renderRecords(json, habit) {
-        const habitEditRecordsSelect = document.getElementById("habitEditRecord" + habit.id);
-        const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
-
-        /////TO-DO: FIX ERROR MESSAGES BEING RETURNED AND STATUSES
-        console.log(json);
-        if (json['status'] && json['record'] != undefined) {
+    static initializeRecords(json, habit) {
+        console.log("HabitRecord :: initializeRecords");
+        if (json['status'] && json['record'] !== undefined) {
             json['record'].forEach(record => {
-                const matchedHabit = Habit.all.find(habi => habit.id === record['habit_id']);
-                new HabitRecord(record['id'], matchedHabit, record['time_of_record'])
-                if (checkIfInRange(record['time_of_record'], "last7")) {
-                    const box = document.createElement("span");
-                    box.setAttribute("class", "box");
-                    box.id = "box" + record['id'];
-                    box.style.backgroundColor = habit.color;
-                    habitRecordBoxesTD.appendChild(box);
-                }
-
-                const optionRecord = document.createElement("option");
-                optionRecord.setAttribute("value", record['time_of_record']);
-                optionRecord.setAttribute("id", "timeRecorded" + record['id'])
-                optionRecord.innerText = record['time_of_record'];
-                habitEditRecordsSelect.appendChild(optionRecord);
-
-
+                new HabitRecord(record['id'], habit, record['time_of_record'])
             })
         }
     }
 
     static handleNewRecord(habit) {
-        console.log(habit);
-        //debugger
         HabitRecord.createRecord(habit).then(json => {
-            HabitRecord.renderNewRecord(json, habit);
+            HabitRecord.newRecord(json, habit);
         })
 
     }
@@ -155,114 +185,56 @@ class HabitRecord {
         .then(json => json)
     }
 
-    static renderNewRecord(json, habit) {
-        const records = document.createElement("p");
-        const error = document.getElementById("error");
-        const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
+    static newRecord(json, habit) {
+        console.log("HabitRecord :: newRecord");
         const range = document.getElementById("habitFilterRecordsToRemove" + habit.id).value;
         const habitEditRecordsSelect = document.getElementById("habitEditRecord" + habit.id);
+        const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
         if (json['status'] == true) {
-            records.innerText = json['record']['time_of_record'];
-            const matchedHabit = Habit.all.find(habit => habit.id === json['record']['habit_id'])
-            new HabitRecord(json['record']['id'], matchedHabit, json['record']['time_of_record'])
 
-            if (checkIfInRange(json['record']['time_of_record'], "last7")) {
-                const box = document.createElement("span");
-                box.setAttribute("class", "box");
-                box.id = "box" + json['record']['id'];
-                box.style.backgroundColor = habit.color;
-                habitRecordBoxesTD.appendChild(box);
-            }
+            // create new Habit Record
+            new HabitRecord(json['record']['id'], habit, json['record']['time_of_record'])
 
-            const habitRecordsConfigObject = HabitRecord.createGetRecordsConfig(habit);
-            console.log(habit.id);
-             fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${habit.id}&range=${range}`, habitRecordsConfigObject)
-            .then(json => {
-                if (json['status']) {
-                    habitEditRecordsSelect.innerHTML = "";
-                    //debugger
-                    if ((json['record'] === undefined) || (json['record'].length === 0)) {
-                        const optionRecord = document.createElement("option");
-                        optionRecord.innerText = "No Records";
-                        optionRecord.value = "";
-                        optionRecord.setAttribute("disabled", "");
-                        optionRecord.setAttribute("selected", "");
-                        habitEditRecordsSelect.appendChild(optionRecord);
-                    } else {
-                        json['record'].forEach(record => {
-                            const optionRecord = document.createElement("option");
-                            optionRecord.setAttribute("value", record['time_of_record']);
-                            optionRecord.setAttribute("id", "timeRecorded" + record['id'])
-                            optionRecord.innerText = record['time_of_record'];
-                            habitEditRecordsSelect.appendChild(optionRecord);
-                        })
-                    }
-                }
-            });
+            // update last 7 day cell if record is in the last 7 days
+            habit.handle7DayRecords();
+
+            habit.handleSelectedRecords();
             renderHabitSummary(habit.user);
+
         } else {
-            error.innerText = json['errors'];
+            document.getElementById("error").innerText = json['errors'];
         }
     }
 
     static handleDeleteRecord(record) {
         const recordId = parseInt(record.id.match(/[0-9]+/)[0])
         const recordObj = HabitRecord.all.find(r => r.id === recordId)
-        recordObj.delete().then(json => recordObj.deleteRecords(json))
+        recordObj.deleteRecord().then(json => recordObj.renderDeleteRecords(json))
     }
 
-    delete() {
-        console.log("Instance delete");
-        const deleteRecordConfig = this.createDeleteRecordsConfig();
 
+
+    deleteRecord() {
+        const deleteRecordConfig = this.createDeleteRecordsConfig();
         return fetchJSON(`${BACKEND_URL}/habit_records/${this.id}`, deleteRecordConfig)
             .then(json => json)
     }
 
-    deleteRecords(json) {
-        console.log("deleteRecords");
+    renderDeleteRecords(json) {
         if (json['status']) {
             const habitEditRecordsSelect = document.getElementById("habitEditRecord" + this.habit.id);
             const range = document.getElementById("habitFilterRecordsToRemove" + this.habit.id).value;
             const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + this.habit.id);
-            const habitRecordsOption = document.querySelector("option#timeRecorded" + this.id);
             const boxToRemove = document.querySelector("span#box" + this.id);
 
-            //remove from all records
+            //remove from records
             HabitRecord.all.splice(HabitRecord.all.indexOf(this), 1);
 
-            // remove box from view if it is within 7 days
-            if ((boxToRemove !== null) && (checkIfInRange(this.timeOfRecord, "last7"))) {
-                habitRecordBoxesTD.removeChild(boxToRemove);
-            }
+            //render progress and selected drop down
+            this.habit.handle7DayRecords();
+            this.habit.handleSelectedRecords();
 
-            // retrieve records again
-            // TO-DO: POSSIBLE DUPLICATE IN REMOVE ADDEVENTLISTENER
-            const habitRecordsConfigObject = HabitRecord.createGetRecordsConfig(this.habit);
-            console.log(this.habit.id);
-             fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${this.habit.id}&range=${range}`, habitRecordsConfigObject)
-            .then(json => {
-                if (json['status']) {
-                    habitEditRecordsSelect.innerHTML = "";
-                    if ((json['record'] === undefined) || (json['record'].length === 0)) {
-                        const optionRecord = document.createElement("option");
-                        optionRecord.innerText = "No Records";
-                        optionRecord.value = "";
-                        optionRecord.setAttribute("disabled", "");
-                        optionRecord.setAttribute("selected", "");
-                        habitEditRecordsSelect.appendChild(optionRecord);
-                    } else {
-                        json['record'].forEach(record => {
-                            const optionRecord = document.createElement("option");
-                            optionRecord.setAttribute("value", record['time_of_record']);
-                            optionRecord.setAttribute("id", "timeRecorded" + record['id'])
-                            optionRecord.innerText = record['time_of_record'];
-                            habitEditRecordsSelect.appendChild(optionRecord);
-                        })
-                    }
-                }
-                renderHabitSummary(this.habit.user);
-            });
+            renderHabitSummary(this.habit.user);
 
         }
     }
