@@ -31,11 +31,9 @@ function monitorUserArea(user) {
 
         switch(formName) {
             case "loginForm":
-                console.log("\tLogin Form");
                 config = user.createLoginConfig();
                 fetchJSON(`${BACKEND_URL}/auth_user`, config)
                 .then(json => {
-                    console.log(json);
                     if (json['status']) {
                         authConfig = user.createAuthConfig(json['auth_token'])
                         if (json['status'] == "authorized") {
@@ -49,12 +47,11 @@ function monitorUserArea(user) {
                             })
                         }
                     } else {
-                        console.log("blah");
+                        // handle error if false
                     }
                 })
                 break;
             case "signupForm":
-                console.log("\tsignupForm");
                 config = User.createSignupConfig();
                 fetchJSON(`${BACKEND_URL}/users`, config)
                 .then(json => {
@@ -65,7 +62,6 @@ function monitorUserArea(user) {
                 });
                 break;
             case "habitForm":
-                console.log("\thabitForm");
                 Habit.createHabit(user);
                 break;
             default:
