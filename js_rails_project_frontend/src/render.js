@@ -22,67 +22,79 @@ function renderHabitControlHead() {
 
 function filterHabitRecords(e, user) {
     e.preventDefault();
-    showHabits(user);
+    handleHabitSummary(user);
 }
 
-function showHabits(user) {
-    console.log("render :: showHabits");
+function handleHabitSummary(user) {
+    Habit.getHabits(user).then(json => renderHabitSummaryRow(user, json));
+}
 
+function renderHabitSummaryRow(user, json) {
     const habitTableElement = document.getElementById("allHabitsTable");
     habitTableElement.innerHTML = "";
-    fetchJSON(`${BACKEND_URL}/habits`, user.createAuthConfig(user.authToken))
-    .then(json => {
-        if (json['status'] && json['habits'] != undefined) {
-            json['habits'].forEach(habit => {
-                const habitRowElement = document.createElement("tr");
-                const habitNameTD = document.createElement("td");
-                const recordsTotalTD = document.createElement("td");
-                const recordsTD = document.createElement("td");
-                const habitSpanElement = document.createElement("span");
+    if (json['status'] && json['habits'] != undefined) {
+        json['habits'].forEach(habit => {
+            const habitRowElement = document.createElement("tr");
+            const habitNameTD = document.createElement("td");
+            const recordsTotalTD = document.createElement("td");
+            const recordsTD = document.createElement("td");
+            const habitSpanElement = document.createElement("span");
 
-                habitRowElement.setAttribute("class", "habit-row");
-                habitRowElement.setAttribute("id", "allHabitRow" + habit.id)
-                habitSpanElement.setAttribute("class", "habit-cell");
-                habitSpanElement.innerText = habit.name;
-                recordsTD.id = "recordsTD" + habit.id;
+            habitRowElement.setAttribute("class", "habit-row");
+            habitRowElement.setAttribute("id", "allHabitRow" + habit.id)
+            recordsTotalTD.id = "recordsTotalTD" + habit.id;
+            recordsTD.id = "recordsTD" + habit.id;
+            habitSpanElement.setAttribute("class", "habit-cell");
+            habitSpanElement.innerText = habit.name;
 
-                habitNameTD.appendChild(habitSpanElement);
-                habitRowElement.append(habitNameTD, recordsTotalTD, recordsTD);
-                habitTableElement.append(habitRowElement);
-                user.habits.push(habit);
+            habitNameTD.appendChild(habitSpanElement);
+            habitRowElement.append(habitNameTD, recordsTotalTD, recordsTD);
+            habitTableElement.append(habitRowElement);
+            user.habits.push(habit);
 
-                const filterRange = (document.querySelector("select#selectFilterHabits").value == null) ? "last7" :
-                        document.querySelector("select#selectFilterHabits").value;
+            handleFilteredSummaryHabits(habit);
+        })
+    }
 
-                    fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${habit.id}&range=${filterRange}`, user.createAuthConfig(user.authToken))
-                    .then(json => {
-                        if (json['status'] && json['record'] != undefined) {
-                            json['record'].forEach(record => {
-                                const box = document.createElement("span");
-                                box.setAttribute("class", "boxAll");
-                                box.id = "box" + record['id'];
-                                box.style.backgroundColor = habit.color;
-                                recordsTD.append(box);
-                            })
-                            recordsTotalTD.innerText = json['record'].length;
-                            habitRowElement.appendChild(recordsTD);
-                        }
-                    })
-
-            })
-
-
-        }
-    })
 }
 
+function handleFilteredSummaryHabits(habit) {
+    if (Habit.all.length !== 0) {
+        const matchedHabit = Habit.all.find(h => h.id === habit['id']);
+        const filterRange = (document.querySelector("select#selectFilterHabits").value == null) ? "last7" :
+            document.querySelector("select#selectFilterHabits").value;
+        HabitRecord.getFilteredRecords(filterRange, matchedHabit).then(json => renderFilteredHabits(json, matchedHabit));
+    }
+}
 
-function renderHabitSummary(user) {
-    console.log("render :: renderHabitSummary");
-    const allHabitsDivElement = document.getElementById("allHabits");
-    allHabitsDivElement.innerHTML = "";
+function renderFilteredHabits(json, habit) {
 
+    /* if table summary has not been rendered yet avoid throwing an error */
+    if (document.getElementById("allHabitRow" + habit.id) !== null) {
+        const recordsTD = document.getElementById("recordsTD" + habit.id);
+        recordsTD.innerHTML = "";
+        if (json['status'] && json['record'] != undefined) {
+            json['record'].forEach(record => {
+                const box = document.createElement("span");
+                box.setAttribute("class", "boxAll");
+                box.id = "box" + record['id'];
+                box.style.backgroundColor = habit.color;
+                recordsTD.append(box);
+            })
+            document.getElementById("recordsTotalTD" + habit.id).innerText = json['record'].length;
+            document.getElementById("allHabitRow" + habit.id).appendChild(recordsTD);
+        }
+    } else {
+        console.log("Habit table summary has not been rendered");
+    }
+
+}
+
+function renderHabitsSummarySelect(user) {
     const allHabitsFilterDiv = document.createElement("div");
+
+        const logSummaryHeading = document.createElement("h2");
+        logSummaryHeading.innerText = "Habit History";
 
         const allHabitsFilterSelect = document.createElement("select");
         allHabitsFilterSelect.id = "selectFilterHabits";
@@ -99,8 +111,18 @@ function renderHabitSummary(user) {
         allHabitsFilterSelect.addEventListener("click", e => {
                 filterHabitRecords(e, user);
         })
+        allHabitsFilterDiv.append(logSummaryHeading, allHabitsFilterSelect);
+    return allHabitsFilterDiv;
+}
 
-    allHabitsFilterDiv.appendChild(allHabitsFilterSelect);
+function renderHabitSummary(user) {
+    const allHabitsDivElement = document.getElementById("allHabits");
+    allHabitsDivElement.innerHTML = "";
+
+    let allHabitsFilterDiv = document.createElement("div");
+    if (Habit.all.length !== 0)
+        allHabitsFilterDiv = renderHabitsSummarySelect(user);
+
     allHabitsDivElement.appendChild(allHabitsFilterDiv);
 
     const allHabitNamesTableElement = document.createElement("table");
@@ -108,9 +130,5 @@ function renderHabitSummary(user) {
 
     allHabitsDivElement.appendChild(allHabitNamesTableElement);
 
-    showHabits(user);
-
-
-
-
+    handleHabitSummary(user);
 }
