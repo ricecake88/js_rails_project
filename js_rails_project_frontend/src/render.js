@@ -76,31 +76,6 @@ function showHabits(user) {
     })
 }
 
-function getFilteredHabitRecords(user, habit) {
-    let config = user.createAuthConfig(user.authToken);
-
-    const filterRange = (document.querySelector("select#selectFilterHabits").value == null) ? "last7" :
-            document.querySelector("select#selectFilterHabits").value;
-
-    fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${habit.id}&range=${filterRange}`, config)
-        .then(json => {
-            const recordsElement = document.createElement("div");
-            recordsElement.setAttribute("class", "habit-cell");
-
-            if (json['status'] && json['record'] != undefined) {
-                json['record'].forEach(record => {
-                    const box = document.createElement("span");
-                    box.setAttribute("class", "boxAll");
-                    box.id = "box" + record['id'];
-                    box.style.backgroundColor = habit.color;
-                    recordsElement.append(box);
-                })
-                const habitRowElement = document.getElementById("allHabitRow" + habit.id);
-                habitRowElement.appendChild(recordsElement);
-            }
-        })
-
-}
 
 function renderHabitSummary(user) {
     console.log("render :: renderHabitSummary");
