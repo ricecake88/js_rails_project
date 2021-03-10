@@ -179,7 +179,7 @@ class HabitRecord {
     }
 
     static createRecord(habit) {
-        const configObject = HabitRecord.createAddRecordConfig(habit);
+        const configObject = HabitRecord.createPostRecordConfig(habit);
         return fetchJSON(`${BACKEND_URL}/habit_records`, configObject)
         .then(json => json)
     }
