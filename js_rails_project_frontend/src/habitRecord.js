@@ -138,12 +138,16 @@ class HabitRecord {
     }
 
     static get7DayProgress(json, habit) {
+        console.log("in get7DayProgress");
         if (json['status'] && json['record'] !== undefined) {
             const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
             habitRecordBoxesTD.innerHTML = "";
             json['record'].forEach(rec => {
                 const record = HabitRecord.all.find(r => r.id === rec['id']);
-                record.render7Day(habitRecordBoxesTD);
+
+                /* only render if record is found in Habit Record list*/
+                if (record !== undefined)
+                    record.render7Day(habitRecordBoxesTD);
             })
         }
     }
