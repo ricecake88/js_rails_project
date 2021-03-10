@@ -53,11 +53,11 @@ class HabitRecord {
         return this._timeOfRecord;
     }
 
-    static createAddRecordConfig(habit) {
+    static createPostRecordConfig(habit) {
         console.log("HabitRecord :: createAddRecordConfig");
         let record = document.getElementById('habitRecordDateInput' + habit.id);
         return {
-            method: 'post',
+            method: 'POST',
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
@@ -82,7 +82,7 @@ class HabitRecord {
 
     createDeleteRecordsConfig() {
         return {
-            method: 'delete',
+            method: 'DELETE',
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
@@ -91,7 +91,7 @@ class HabitRecord {
             body: JSON.stringify({
                 'habit_id': this.habit.id,
                 'user_id': this.habit.user.id,
-                "time_of_record": document.getElementById("habitEditRecord" + this.habit.id).value
+                "time_of_record": document.getElementById("habitRemoveRecord" + this.habit.id).value
             })
         }
     }
@@ -142,7 +142,6 @@ class HabitRecord {
             const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
             habitRecordBoxesTD.innerHTML = "";
             json['record'].forEach(rec => {
-                //find record
                 const record = HabitRecord.all.find(r => r.id === rec['id']);
                 record.render7Day(habitRecordBoxesTD);
             })
@@ -187,9 +186,6 @@ class HabitRecord {
 
     static newRecord(json, habit) {
         console.log("HabitRecord :: newRecord");
-        const range = document.getElementById("habitFilterRecordsToRemove" + habit.id).value;
-        const habitEditRecordsSelect = document.getElementById("habitEditRecord" + habit.id);
-        const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
         if (json['status'] == true) {
 
             // create new Habit Record
@@ -212,8 +208,6 @@ class HabitRecord {
         recordObj.deleteRecord().then(json => recordObj.renderDeleteRecords(json))
     }
 
-
-
     deleteRecord() {
         const deleteRecordConfig = this.createDeleteRecordsConfig();
         return fetchJSON(`${BACKEND_URL}/habit_records/${this.id}`, deleteRecordConfig)
@@ -222,10 +216,6 @@ class HabitRecord {
 
     renderDeleteRecords(json) {
         if (json['status']) {
-            const habitEditRecordsSelect = document.getElementById("habitEditRecord" + this.habit.id);
-            const range = document.getElementById("habitFilterRecordsToRemove" + this.habit.id).value;
-            const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + this.habit.id);
-            const boxToRemove = document.querySelector("span#box" + this.id);
 
             //remove from records
             HabitRecord.all.splice(HabitRecord.all.indexOf(this), 1);
