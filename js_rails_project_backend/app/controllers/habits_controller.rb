@@ -6,7 +6,7 @@ class HabitsController < ApplicationController
         unless logged_in?
             render json: {status: false}
         else
-            habits = Habit.where(:user_id => @current_user.id)
+            habits = Habit.where(:user_id => @current_user.id).order("name ASC")
             render json: {status: true, first_name: @current_user.first_name, last_name: @current_user.last_name, email: @current_user.email, password: @current_user.encrypted_password, id: @current_user.id, habits: habits}
         end
     end
