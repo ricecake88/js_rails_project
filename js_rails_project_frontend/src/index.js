@@ -1,7 +1,4 @@
 const BACKEND_URL = 'http://localhost:3000';
-fetch(`${BACKEND_URL}/test`)
-  .then(response => response.json())
-  .then(json => console.log(json));
 
 function clearError() {
     document.getElementById("error").innerText = "";
@@ -18,7 +15,6 @@ function fetchJSON(action_path, configObject) {
   }
 
 function monitorUserArea(user) {
-    console.log(">>>> monitorUserArea");
 
     const userAreaElement = document.getElementById("user");
     userAreaElement.addEventListener("submit", function(e) {
@@ -27,7 +23,6 @@ function monitorUserArea(user) {
         let authConfig;
         formElement = this.querySelectorAll("form")[0];
         const formName = formElement.getAttribute("name");
-        console.log("\tSelecting: " + formName);
 
         switch(formName) {
             case "loginForm":
@@ -37,7 +32,6 @@ function monitorUserArea(user) {
                     if (json['status']) {
                         authConfig = user.createAuthConfig(json['auth_token'])
                         if (json['status'] == "authorized") {
-                            console.log("\tAccessing " + `${BACKEND_URL}/habits`);
                             fetchJSON(`${BACKEND_URL}/habits`, authConfig)
                             .then(json => {
                                 user.handleLogin(json);
@@ -72,7 +66,6 @@ function monitorUserArea(user) {
     })
 
 }
-
 
 
 function monitorSignupLink() {

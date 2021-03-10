@@ -55,7 +55,6 @@ class User {
 
 
     static renderLogin() {
-        console.log("renderLogin")
         const userAreaElement = document.getElementById("user");
         userAreaElement.innerHTML = "";
 
@@ -246,7 +245,6 @@ class User {
 
     /* handles return json from signup state */
     static handleSignup(json) {
-        console.log(">>>>> handleSignupConfig()")
         if (json.status == 404) {
             document.getElementById('error').innerHTML = "ERROR. Sign up failed."
         } else if (json['status'] == true) {
@@ -284,7 +282,6 @@ class User {
 
     /* handles return json from login state */
     handleLogin(json) {
-       console.log("in handleLoginConfig(json)")
        const userElement = document.querySelector('#user');
        const messageElement = document.querySelector("#message");
        const textElement = document.createElement('p');
@@ -296,7 +293,6 @@ class User {
            messageElement.textContent = json['errors'];
            this._password = '';
        } else { //login passed
-           console.log(json);
            messageElement.textContent = "Welcome, " + json.first_name;
            this._firstName = json.first_name;
            this._lastName = json.last_name;

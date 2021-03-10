@@ -86,7 +86,6 @@ class Habit {
 
     /* render form to add habit */
     static renderAddHabitForm() {
-        console.log("in renderAddHabitForm()");
         const userAreaElement = document.getElementById("user");
         userAreaElement.innerHTML = "";
 

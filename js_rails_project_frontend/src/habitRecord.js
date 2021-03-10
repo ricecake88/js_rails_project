@@ -54,7 +54,6 @@ class HabitRecord {
     }
 
     static createPostRecordConfig(habit) {
-        console.log("HabitRecord :: createAddRecordConfig");
         let record = document.getElementById('habitRecordDateInput' + habit.id);
         return {
             method: 'POST',
@@ -97,8 +96,6 @@ class HabitRecord {
     }
 
     render7Day(habitRecordBoxesTD) {
-        //const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + this._habit.id);
-
         if (checkIfInRange(this._timeOfRecord, "last7")) {
             const box = document.createElement("span");
             box.setAttribute("class", "box");
@@ -138,7 +135,6 @@ class HabitRecord {
     }
 
     static get7DayProgress(json, habit) {
-        console.log("in get7DayProgress");
         if (json['status'] && json['records'] !== undefined) {
             const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
             habitRecordBoxesTD.innerHTML = "";
@@ -155,20 +151,17 @@ class HabitRecord {
 
     static getFilteredRecords(range, habit) {
         const habitRecordsConfigObject = HabitRecord.createGetRecordsConfig(habit);
-        console.log(habitRecordsConfigObject);
         return fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${habit.id}&range=${range}`, habitRecordsConfigObject)
         .then(json => json);
     }
 
     static getAllRecords(habit) {
         const habitRecordsConfigObject = this.createGetRecordsConfig(habit);
-        console.log(habitRecordsConfigObject);
         return fetchJSON(`${BACKEND_URL}/habit_records?habit_id=${habit.id}&range=all`, habitRecordsConfigObject)
         .then(json => json);
     }
 
     static initializeRecords(json, habit) {
-        console.log("HabitRecord :: initializeRecords");
         if (json['status'] && json['records'] !== undefined) {
             json['records'].forEach(record => {
                 new HabitRecord(record['id'], habit, record['time_of_record'])
@@ -190,7 +183,6 @@ class HabitRecord {
     }
 
     static newRecord(json, habit) {
-        console.log("HabitRecord :: newRecord");
         if (json['status'] == true) {
 
             // create new Habit Record
@@ -230,7 +222,6 @@ class HabitRecord {
             this.habit.handleSelectedRecords();
 
             renderHabitSummary(this.habit.user);
-
         }
     }
 
