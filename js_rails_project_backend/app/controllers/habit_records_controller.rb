@@ -7,7 +7,7 @@ class HabitRecordsController < ApplicationController
             render json: { message: "Error not logged in"}
         else
             records = HabitRecord.records(params, @current_user.id)
-            render json: { status: true, record: records, range: params[:range], time: 1.week.ago.to_date, user: @current_user}
+            render json: { status: true, records: records, range: params[:range], time: 1.week.ago.to_date, user: @current_user}
         end
     end
 
