@@ -6,10 +6,6 @@ class ApplicationController < ActionController::API
     #protect_from_forgery with: :exception
     #protect_from_forgery with :null_session
 
-    def test
-      render json: { test: "success" }
-    end
-
     def logged_in?
       !!@current_user
     end
