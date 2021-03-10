@@ -1,6 +1,7 @@
 function renderHabitControlHead() {
     const habitTable = document.querySelector("table#habitTable");
     const headRow = document.createElement("tr")
+    headRow.setAttribute("id", "headRow");
 
     const headerNames = {
         "deleteHeadCell": "Delete a Habit",
@@ -17,8 +18,6 @@ function renderHabitControlHead() {
         headRow.appendChild(node);
     })
     habitTable.append(headRow);
-
-
 }
 
 function filterHabitRecords(e, user) {
@@ -27,12 +26,8 @@ function filterHabitRecords(e, user) {
 }
 
 function showHabits(user) {
-    console.log("showHabits");
+    console.log("render :: showHabits");
 
-    //let config = user.createAuthConfig(user.authToken);
-/*     const range = document.querySelectorAll("select").forEach(function(select) {
-        return select.id.includes("selectFilterHabits");
-    }) */
     const habitTableElement = document.getElementById("allHabitsTable");
     habitTableElement.innerHTML = "";
     fetchJSON(`${BACKEND_URL}/habits`, user.createAuthConfig(user.authToken))
@@ -108,7 +103,7 @@ function getFilteredHabitRecords(user, habit) {
 }
 
 function renderHabitSummary(user) {
-    console.log("renderHabitSummary!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    console.log("render :: renderHabitSummary");
     const allHabitsDivElement = document.getElementById("allHabits");
     allHabitsDivElement.innerHTML = "";
 
