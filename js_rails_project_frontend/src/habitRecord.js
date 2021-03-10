@@ -112,7 +112,7 @@ class HabitRecord {
         if (json['status']) {
 
             selectElement.innerHTML = "";
-            if ((json['record'] === undefined) || (json['record'].length === 0)) {
+            if ((json['records'] === undefined) || (json['records'].length === 0)) {
                 const optionRecord = document.createElement("option");
                 optionRecord.innerText = "No Records";
                 optionRecord.value = "";
@@ -120,7 +120,7 @@ class HabitRecord {
                 optionRecord.setAttribute("selected", "");
                 selectElement.appendChild(optionRecord);
             } else {
-                json['record'].forEach(record => {
+                json['records'].forEach(record => {
                     const optionRecord = document.createElement("option");
                     optionRecord.setAttribute("value", record['time_of_record']);
                     optionRecord.setAttribute("id", "timeRecorded" + record['id'])
@@ -139,10 +139,11 @@ class HabitRecord {
 
     static get7DayProgress(json, habit) {
         console.log("in get7DayProgress");
-        if (json['status'] && json['record'] !== undefined) {
+        if (json['status'] && json['records'] !== undefined) {
             const habitRecordBoxesTD = document.getElementById("habit7DayProgressDiv" + habit.id);
             habitRecordBoxesTD.innerHTML = "";
-            json['record'].forEach(rec => {
+            json['records'].forEach(rec => {
+
                 const record = HabitRecord.all.find(r => r.id === rec['id']);
 
                 /* only render if record is found in Habit Record list*/
@@ -168,8 +169,8 @@ class HabitRecord {
 
     static initializeRecords(json, habit) {
         console.log("HabitRecord :: initializeRecords");
-        if (json['status'] && json['record'] !== undefined) {
-            json['record'].forEach(record => {
+        if (json['status'] && json['records'] !== undefined) {
+            json['records'].forEach(record => {
                 new HabitRecord(record['id'], habit, record['time_of_record'])
             })
         }

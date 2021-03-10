@@ -73,15 +73,15 @@ function renderFilteredHabits(json, habit) {
     if (document.getElementById("allHabitRow" + habit.id) !== null) {
         const recordsTD = document.getElementById("recordsTD" + habit.id);
         recordsTD.innerHTML = "";
-        if (json['status'] && json['record'] != undefined) {
-            json['record'].forEach(record => {
+        if (json['status'] && json['records'] != undefined) {
+            json['records'].forEach(record => {
                 const box = document.createElement("span");
                 box.setAttribute("class", "boxAll");
                 box.id = "box" + record['id'];
                 box.style.backgroundColor = habit.color;
                 recordsTD.append(box);
             })
-            document.getElementById("recordsTotalTD" + habit.id).innerText = json['record'].length;
+            document.getElementById("recordsTotalTD" + habit.id).innerText = json['records'].length;
             document.getElementById("allHabitRow" + habit.id).appendChild(recordsTD);
         }
     } else {
