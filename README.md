@@ -14,11 +14,11 @@ In the terminal command line first clone the application:
 
 ### To modify the port that localhost runs on one can change the following file:
 
-  js_rails_project_backend/config/environment/development.rb
+  `js_rails_project_backend/config/environment/development.rb`
 
 and add the following:
 
-  config.action_mailer.default_url_options = { host: 'localhost', port:3000}
+  `config.action_mailer.default_url_options = { host: 'localhost', port:3000}`
 
 ### Postgres SQL instructions (Note these are instructions for using with the pgAdmin4.exe on Windows)
 
@@ -27,15 +27,15 @@ and add the following:
 * Modify js_rails_project_backend/config/database.yml by changing the following lines:
 *   `database`
 *   `username`
-*   if localhost is commented out, uncomment it out.
+*   if `localhost` is commented out, uncomment it.
 
-## To start the server (which will run on port 3000):
-* `rails s
+## To start the server enter into the terminal (which will run on port 3000):
+* `rails s`
 
 ## View the application
 
 * Open up your browser
-* Drag js_rails_project_frontend/index.html to the browser.
+* Drag `js_rails_project_frontend/index.html` to the browser.
 
 ## Built With
 
