@@ -4,14 +4,33 @@ body,input, select, button {
     font: 12pt Verdana, sans-serif;
 }
 
-table {
+table#habitTable {
     margin: 10px;
     border-spacing:0;
     border-collapse: collapse;
+    border: 1px solid #ddd;
+    width: 95%;
 }
-tr, th, td {
-    border: 1px solid black;
+
+table#habitTable > tr {
+    border: 1px solid #ddd;
 }
+
+
+#habitTable tr:nth-child(even){background-color: #ffffff;}
+
+#habitTable tr:hover {background-color: #ddd;}
+
+#habitTable th {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    text-align: left;
+    background-color: #1e8488;
+    color: white;
+ }
+ #habitTable#headRow {
+     font: 10pt Arial, sans-serif;
+ }
 
 div.hidden {
     display:none;
@@ -37,6 +56,13 @@ button#signupLink {
     color: blue;
 }
 
+table#allHabitsTable > tr > td {
+    padding: 0 10px;
+}
+
+table#allHabitsTable {
+    border: 0px;
+}
 /*.habit-row {
     display: table-row;
     padding: 10px;
@@ -53,14 +79,18 @@ button#signupLink {
 
 .X {
     padding: 10px;
+    width: 100px;
 }
 
 .habit-name {
+    width: 250px;
+    padding: 10px;
+}
+.habit-name:hover {
     text-decoration:underline;
     width: 250px;
     padding: 10px;
 }
-
 select, input.habitRecordInput {
     margin:10px;
 }
