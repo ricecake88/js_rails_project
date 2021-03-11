@@ -4,6 +4,19 @@ function clearError() {
     document.getElementById("error").innerText = "";
 }
 
+function displayError(errors) {
+    if (Array.isArray(errors) && errors.length !== 0) {
+        let errorString = "";
+        errors.forEach(error => {
+            errorString += `${error}<br/>`
+        })
+        document.getElementById("error").innerHTML = errorString
+    } else {
+        document.getElementById("error").innerText = errors
+    }
+}
+
+/* wrap fetchJSON around fetch to simplify fetch*/
 function fetchJSON(action_path, configObject) {
     return fetch(action_path, configObject)
     .then(response => response.json())
@@ -14,46 +27,40 @@ function fetchJSON(action_path, configObject) {
     })
   }
 
+  /* listens for the form element, and perform different actions
+  depending on whether the user has logged in, added a habit, or
+  signing up for a new account */
 function monitorUserArea(user) {
 
     const userAreaElement = document.getElementById("user");
     userAreaElement.addEventListener("submit", function(e) {
         e.preventDefault();
-        let config;
-        let authConfig;
         formElement = this.querySelectorAll("form")[0];
         const formName = formElement.getAttribute("name");
 
         switch(formName) {
             case "loginForm":
-                config = user.createLoginConfig();
-                fetchJSON(`${BACKEND_URL}/auth_user`, config)
+                // log in and try to authenticate user
+                fetchJSON(`${BACKEND_URL}/auth_user`, user.createLoginConfig())
                 .then(json => {
-                    if (json['status']) {
-                        authConfig = user.createAuthConfig(json['auth_token'])
-                        if (json['status'] == "authorized") {
-                            fetchJSON(`${BACKEND_URL}/habits`, authConfig)
+
+                    // once authorized create GET config with the auth_token
+                    // and set up user fields
+                    if (json['status'] === "authorized" ) {
+                         fetchJSON(`${BACKEND_URL}/habits`, user.createAuthConfig(json['auth_token']))
                             .then(json => {
                                 user.handleLogin(json);
                                 Habit.renderAddHabitForm();
                                 Habit.handleHabits(user);
                                 renderHabitSummary(user);
                             })
-                        }
                     } else {
-                        // handle error if false
+                        displayError(json['errors']);
                     }
                 })
                 break;
             case "signupForm":
-                config = User.createSignupConfig();
-                fetchJSON(`${BACKEND_URL}/users`, config)
-                .then(json => {
-                    User.handleSignup(json);
-                    if (json['status'] == true) {
-                        User.renderLogin();
-                    }
-                });
+                user.handleSignup();
                 break;
             case "habitForm":
                 Habit.handleAddHabit(user);
@@ -67,18 +74,10 @@ function monitorUserArea(user) {
 
 }
 
-
-function monitorSignupLink() {
-    const signupBtn = document.querySelector("button#signupLink");
-    signupBtn.addEventListener("click", function(e) {
-        User.renderSignupForm();
-    })
-}
-
 document.addEventListener('DOMContentLoaded', (event) => {
+    event.preventDefault();
     let user = new User();
     User.renderLogin();
     monitorUserArea(user);
-    monitorSignupLink();
 })
 
