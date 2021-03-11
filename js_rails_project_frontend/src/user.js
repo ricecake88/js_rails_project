@@ -4,7 +4,6 @@ class User {
     constructor(firstName="", email="", password="", authToken="", login_state=false) {
         this._email = email;
         this._firstName = firstName;
-        //this._password = password; //needs encryption - do I need this ?
         this._loggedIn = login_state;
         this._authToken = authToken;
         this._habits = [];
@@ -58,9 +57,8 @@ class User {
         const userAreaElement = document.getElementById("user");
         userAreaElement.innerHTML = "";
 
-        const signupDiv = document.createElement("div");
-        signupDiv.setAttribute("id", "login");
-        signupDiv.setAttribute("class", "hidden");
+        const h3Element = document.createElement("h3");
+        h3Element.innerText = "Login";
 
         const loginForm = document.createElement("form");
         loginForm.setAttribute("method", "post");
@@ -99,13 +97,9 @@ class User {
         submitButton.setAttribute("name", "Submit");
         submitButton.textContent = "Submit";
 
-        loginForm.appendChild(usernameLabel);
-        loginForm.appendChild(usernameLabelbr);
-        loginForm.appendChild(usernameInput);
-        loginForm.appendChild(usernameInputbr);
-        loginForm.appendChild(passwordLabel);
-        loginForm.appendChild(passwordInput);
-        loginForm.appendChild(passwordInputbr);
+        loginForm.appendChild(h3Element);
+        loginForm.append(usernameLabel, usernameLabelbr, usernameInput, usernameInputbr);
+        loginForm.append(passwordLabel, passwordInput, passwordInputbr);
         loginForm.appendChild(submitButton);
 
         const signupBtn = document.createElement("button");
@@ -113,14 +107,18 @@ class User {
         signupBtn.setAttribute("name", "signupLink");
         signupBtn.setAttribute("id", "signupLink");
         signupBtn.textContent = "Signup";
-
+        signupBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            this.renderSignupForm();
+            clearError();
+        })
         userAreaElement.appendChild(loginForm);
         userAreaElement.appendChild(signupBtn);
 
     }
 
     /* create post config to send fetch to signup user */
-    static createSignupConfig() {
+    createPostUserConfig() {
        // create configObject from form input
         return {
             method: 'post',
@@ -138,6 +136,7 @@ class User {
         };
     }
 
+    /* render signup form */
     static renderSignupForm() {
 
         const userAreaElement = document.getElementById("user");
@@ -146,9 +145,8 @@ class User {
         const messageElement = document.getElementById("message");
         messageElement.innerHTML = "";
 
-        const signupDiv = document.createElement("div");
-        signupDiv.setAttribute("id", "signup");
-        signupDiv.setAttribute("class", "hidden");
+        const h3Element = document.createElement("h3");
+        h3Element.innerText = "Create an Account";
 
         const signupFormElement = document.createElement("form");
         signupFormElement.setAttribute("method", "post");
@@ -216,49 +214,65 @@ class User {
 
         const cancelBtn = document.createElement("button");
         cancelBtn.textContent = "Cancel";
+        cancelBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            this.renderLogin();
+            clearError();
+        })
 
-        signupFormElement.appendChild(firstNameLabel);
-        signupFormElement.appendChild(firstNameLabelBr);
-        signupFormElement.appendChild(firstNameInput);
-        signupFormElement.appendChild(firstNameInputBr);
-        signupFormElement.appendChild(lastNameLabel);
-        signupFormElement.appendChild(lastNameLabelBr);
-        signupFormElement.appendChild(lastNameInput);
-        signupFormElement.appendChild(lastNameInputBr);
-        signupFormElement.appendChild(emailLabel);
-        signupFormElement.appendChild(emailLabelBr);
-        signupFormElement.appendChild(emailInput);
-        signupFormElement.appendChild(emailInputBr)
-        signupFormElement.appendChild(passwordLabel);
-        signupFormElement.appendChild(passwordLabelBr);
-        signupFormElement.appendChild(passwordInput);
-        signupFormElement.appendChild(passwordInputBr);
-        signupFormElement.appendChild(passwordConfirmationLabel);
-        signupFormElement.appendChild(passwordConfirmationLabelBr);
-        signupFormElement.appendChild(passwordConfirmationInput);
-        signupFormElement.appendChild(passwordConfirmationInputBr);
+        signupFormElement.append(h3Element);
+        signupFormElement.append(firstNameLabel, firstNameLabelBr, firstNameInput, firstNameInputBr);
+        signupFormElement.append(lastNameLabel, lastNameLabelBr, lastNameInput, lastNameInputBr);
+        signupFormElement.append(emailLabel, emailLabelBr, emailInput, emailInputBr);
+        signupFormElement.append(passwordLabel, passwordLabelBr, passwordInput, passwordInputBr);
+        signupFormElement.append(passwordConfirmationLabel, passwordConfirmationLabelBr, passwordConfirmationInput,
+            passwordConfirmationInputBr);
         signupFormElement.appendChild(submitBtn);
         signupFormElement.appendChild(cancelBtn);
 
         userAreaElement.appendChild(signupFormElement);
     }
 
-    /* handles return json from signup state */
-    static handleSignup(json) {
-        if (json.status == 404) {
-            document.getElementById('error').innerHTML = "ERROR. Sign up failed."
+    /* handles signup action */
+    handleSignup() {
+        this.postUser().then(json => this.renderSignupOK(json));
+    }
+
+    /* posts request to server to create a user */
+    postUser() {
+        return fetchJSON(`${BACKEND_URL}/users`, this.createPostUserConfig())
+        .then(json => json);
+    }
+
+    /* renders the result after account is created or if it fails */
+    renderSignupOK(json) {
+        if (json.status === false) {
+            displayError(json['errors']);
         } else if (json['status'] == true) {
             document.getElementById('message').innerHTML = "Account Created. Please Log In."
+            document.getElementById('user').innerHTML = "";
+            clearError();
+            User.renderLogin();
             this._first_name = json.first_name;
             this._last_name = json.last_name;
             this._email_address = json.email;
             this._loggedIn = true;
             this._id = json.id;
-            document.getElementById('user').innerHTML = "";
-        } else {
-            document.getElementById('message').innerHTML = json.message;
         }
     }
+
+    createAuthConfig(authToken) {
+        let configObject = {
+            method: 'GET',
+            headers: {
+                "Authorization": "Bearer " + authToken
+            },
+        };
+
+        this._authToken = authToken;
+        return configObject;
+    }
+
 
     createLoginConfig() {
         let email = document.querySelector("#loginSubmitForm input#email").value;
@@ -282,36 +296,24 @@ class User {
 
     /* handles return json from login state */
     handleLogin(json) {
-       const userElement = document.querySelector('#user');
-       const messageElement = document.querySelector("#message");
-       const textElement = document.createElement('p');
 
-       /* if login was successful, it welcomes the user
+        /* if login was successful, it welcomes the user
         * and hides the login form,  otherwise
         * it says that login is failed */
        if (!json['status']) {
-           messageElement.textContent = json['errors'];
-           this._password = '';
+           console.log(json);
+           displayError(json['errors']);
        } else { //login passed
-           messageElement.textContent = "Welcome, " + json.first_name;
+           const welcomeHeader = document.getElementById("welcomeHeader");
+           welcomeHeader.textContent = `Happy Habit Tracking, ${json.first_name}!`;
            this._firstName = json.first_name;
            this._lastName = json.last_name;
            this._email = json.email;
            this._loggedIn = true;
            this._id = json.id;
+           clearError();
         }
     }
 
-    createAuthConfig(authToken) {
-        let configObject = {
-            method: 'GET',
-            headers: {
-                "Authorization": "Bearer " + authToken
-            },
-        };
-
-        this._authToken = authToken;
-        return configObject;
-    }
 
 }
