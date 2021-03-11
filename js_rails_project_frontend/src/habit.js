@@ -20,7 +20,6 @@ class Habit {
         return this._id;
     }
 
-    /* setter for id */
     set id(num) {
         this._id = num;
     }
@@ -53,7 +52,7 @@ class Habit {
                 json['habits'].forEach(habit => {
                     const newHabit = new Habit(habit.id, habit.name, habit.frequency_mode, habit.num_for_streak, habit.streak_counter,
                         habit.streak_level, habit.color, user);
-                    newHabit.renderHabit(user);
+                    newHabit.renderHabit("get");
 
                     // initialize and fill up HabitRecord with records related to habit
                     HabitRecord.handleAllRecords(newHabit);
@@ -66,11 +65,7 @@ class Habit {
                 })
             }
         } else {
-            if (json['message']) {
-                const message = document.querySelector("div#message");
-                message.innerText = json['message'];
-                clearError();
-            }
+            displayError(json['errors']);
         }
     } //end renderHabits
 
@@ -88,6 +83,9 @@ class Habit {
     static renderAddHabitForm() {
         const userAreaElement = document.getElementById("user");
         userAreaElement.innerHTML = "";
+
+        const addHeader = document.createElement("h3");
+        addHeader.innerText = "Add a Habit";
 
         const habitForm = document.createElement("form");
         habitForm.name = "habitForm";
@@ -118,7 +116,7 @@ class Habit {
         const streakLevelSelect = document.createElement("select");
         streakLevelSelect.id = "streakLevel";
         const streakLevels = ["Easy", "Medium", "Hard"];
-        // CAN REDUCE THIS IF NEEDED - TO SEPARATE FUNCTION
+        // TO-DO: CAN REDUCE THIS IF NEEDED - TO SEPARATE FUNCTION
         streakLevels.forEach(streakLevel => {
             const optionElement = document.createElement("option");
             optionElement.value = streakLevel;
@@ -147,6 +145,7 @@ class Habit {
         colorChoice.id = "colorChoice";
         colorChoice.setAttribute("class", "box");
         colorChoice.style.backgroundColor = "pink";
+        colorChoice.style.marginRight = "10px";
 
         /* change color box to match selected color */
         habitColorSelect.addEventListener("change", function(event) {
@@ -160,7 +159,7 @@ class Habit {
         submitHabit.name = "submitNewHabit";
         submitHabit.innerText = "Add";
 
-
+        habitForm.appendChild(addHeader);
         habitForm.append(habitNameLabel, habitNameInput);
         habitForm.append(frequencyLabel, frequencySelect);
         habitForm.append(streakLevelLabel, streakLevelSelect);
@@ -228,7 +227,8 @@ class Habit {
                 json['habit']['color'],
                 user);
 
-            createdHabit.renderHabit();
+            // render habit
+            createdHabit.renderHabit("add");
         } else {
             document.getElementById("error").innerText = json['errors'];
         }
@@ -236,7 +236,7 @@ class Habit {
 
     /* retrieve 7 day records and then render the records as boxes */
     handle7DayRecords() {
-        HabitRecord.getFilteredRecords("last7", this).then(json => HabitRecord.get7DayProgress(json, this))
+        HabitRecord.getFilteredRecords("last7", this).then(json => HabitRecord.render7DayProgress(json, this))
     }
 
     /* retrieve records based on select range and then render the selection of records */
@@ -269,37 +269,61 @@ class Habit {
         }
     }
 
+    /* method that is called when user tries to modify a habit */
     handleUpdatedHabit(habitCell, copiedHabit) {
-        this.updateHabit(copiedHabit).then(json => this.renderUpdatedHabit(habitCell, json))
+        this.patchHabit(copiedHabit).then(json => this.renderUpdatedHabit(habitCell, json))
     }
 
-    updateHabit(copiedHabit) {
+    /* send patch request to server to modify a changed field of habit */
+    patchHabit(copiedHabit) {
         return fetchJSON(`${BACKEND_URL}/habits/${this._id}`, this.createCfgPatch(copiedHabit))
         .then(json => json);
     }
 
+    /* render the updated field or display an error if there is an error in modifying habit
+        and also updates the habit instance */
     renderUpdatedHabit(habitCell, json) {
         if (json['status']) {
             let originalSpanElement = null;
+
             if (habitCell.firstChild.id.includes("habitNameSpan")) {
+
+                // render the original text field with modified habit name
+                // and update the instance with entered name
                 this._name = json['habit']['name'];
                 originalSpanElement = this.createEditableSpanElement("habitNameSpan", this._name);
                 habitCell.innerHTML = "";
                 habitCell.appendChild(originalSpanElement);
+
             } else if (habitCell.firstChild.id.includes("habitFreqModeSpan")) {
+
+                // render text field with modified frequency mode / goal of habit
+                // and update the instance with selected goal
                 this._frequency_mode = json['habit']['frequency_mode'];
                 originalSpanElement = this.createEditableSpanElement("habitFreqModeSpan", this._frequency_mode);
                 habitCell.innerHTML = "";
                 habitCell.appendChild(originalSpanElement);
+
             } else if (habitCell.firstChild.id.includes("editColorSelect")) {
+
+                // update instance with color selected
                 this._color = json['habit']['color'];
                 originalSpanElement = document.getElementById("editColorBox" + json['habit']['id'])
+
+                // render the 7 day progress cell with updated color
                 this.handle7DayRecords();
+
+                // update the summary with the updated summary
                 renderHabitSummary(this._user);
             }
+            clearError();
+        } else {
+            displayError(json['errors'])
         }
     }
 
+    /* changes from a text field to an input or select field when user wants to edit a habit
+        depending on field being modified */
     renderToggleEdit(e) {
         e.preventDefault();
         const habitCell = e.target.parentNode;
@@ -355,6 +379,8 @@ class Habit {
 
     }
 
+    /* function that shows the second row to record/log or remove a record depending on which
+        was requested */
     renderToggleRecordsControl(e) {
         const id = e.target.id.match(/[0-9]+/)[0];
         const habitShowRow = document.getElementById("habitRecordsControl" + id);
@@ -440,8 +466,10 @@ class Habit {
 
     }
 
+    /* function that renders the select menu for color of habit and shows
+    renders all color boxes that show the color */
     renderColorSelect(colorChoiceTD) {
-        // -- Color Box Field -- //
+        // -- Color Box Select Field -- //
         const colorSelect = document.createElement("select");
         colorSelect.id = "editColorSelect" + this._id;
         const colors = ["blue", "black", "green", "lightblue", "orange", "pink", "purple", "red", "yellow", "violet"]
@@ -456,12 +484,16 @@ class Habit {
             colorSelect.appendChild(option);
         })
 
+        // colorBox to show what the color is from the select menu
         const colorBox = document.createElement("span");
         colorBox.setAttribute("class", "box");
         colorBox.id = "editColorBox" + this._id;
         colorBox.style.backgroundColor = this._color;
 
         colorChoiceTD.append(colorSelect, colorBox);
+
+        // when a color has been selected from the menu,
+        // update color of habit and render all related color rendering
         colorSelect.addEventListener("click", (e) => {
             e.preventDefault();
             e.target.focus();
@@ -475,7 +507,10 @@ class Habit {
 
     }
 
-    renderHabit() {
+    /* renders a habit either by logging in or by adding a new habit
+        which includes all listeners for elements in the two rows related
+        to the habit */
+    renderHabit(action) {
         const habitTable = document.querySelector("table#habitTable");
 
         // ---- Row where main details for habits are ---//
@@ -567,6 +602,7 @@ class Habit {
                     secondHabitRow.setAttribute("class", "hidden");
                     document.getElementById("habitRecordsSubmitCell" + this._id).setAttribute("class", "hidden");
                     document.getElementById("habitRecordsRemoveDateCell" + this._id).setAttribute("class", "hidden");
+                    clearError();
                 }
             }
         })
@@ -622,6 +658,17 @@ class Habit {
                     habitRemoveRecordsSelect.setAttribute("name", "habitRemoveRecord");
                     habitRemoveRecordsSelect.setAttribute("id", "habitRemoveRecord" + this._id);
 
+                    //-- if action was to add a habit, start off with selection with "no records"
+                    if (action === "add") {
+                        const optionRecord = document.createElement("option");
+                        optionRecord.innerText = "No Records";
+                        optionRecord.value = "";
+                        optionRecord.setAttribute("disabled", "");
+                        optionRecord.setAttribute("selected", "");
+                        habitRemoveRecordsSelect.appendChild(optionRecord);
+                    }
+
+                    //--button to remove a record --/
                     const habitRemoveRecordsBtn = document.createElement("button");
                     habitRemoveRecordsBtn.setAttribute("value", "Remove");
                     habitRemoveRecordsBtn.setAttribute("name", "Remove");
@@ -650,7 +697,10 @@ class Habit {
             })
             HabitRecord.handleDeleteRecord(recordToRemove);
         });
-         habitRecordsToRemoveSelect.addEventListener("change", () => {this.handleSelectedRecords()})
+        habitRecordsToRemoveSelect.addEventListener("change", () => {this.handleSelectedRecords()})
+
+        // ---- clear error messages --- //
+        clearError();
     } // end render Habit
 
 }
