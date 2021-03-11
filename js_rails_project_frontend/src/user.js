@@ -58,7 +58,7 @@ class User {
         userAreaElement.innerHTML = "";
 
         const h3Element = document.createElement("h3");
-        h3Element.innerText = "Login";
+        h3Element.innerText = "Login to Track Your Habits";
 
         const loginForm = document.createElement("form");
         loginForm.setAttribute("method", "post");
