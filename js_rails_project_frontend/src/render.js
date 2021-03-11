@@ -1,3 +1,4 @@
+/* display the header for habit table */
 function renderHabitControlHead() {
     const habitTable = document.querySelector("table#habitTable");
     const headRow = document.createElement("tr")
@@ -20,15 +21,19 @@ function renderHabitControlHead() {
     habitTable.append(headRow);
 }
 
+// ------------- for the summary -------------------//
+/* show and display the records based on time range */
 function filterHabitRecords(e, user) {
     e.preventDefault();
     handleHabitSummary(user);
 }
 
+/* get all the habits and then render the habits */
 function handleHabitSummary(user) {
     Habit.getHabits(user).then(json => renderHabitSummaryRow(user, json));
 }
 
+/* if habits are returned create a row for each table */
 function renderHabitSummaryRow(user, json) {
     const habitTableElement = document.getElementById("allHabitsTable");
     habitTableElement.innerHTML = "";
@@ -52,25 +57,37 @@ function renderHabitSummaryRow(user, json) {
             habitTableElement.append(habitRowElement);
             user.habits.push(habit);
 
-            handleFilteredSummaryHabits(habit);
+            // display records related to habit
+            handleFilteredSummaryRecords(habit);
         })
     }
 
 }
 
-function handleFilteredSummaryHabits(habit) {
+/* retrieve the records based on the time range and the habit related to the record */
+function handleFilteredSummaryRecords(habit) {
+    // retrieve records related to a habit if habits exist
     if (Habit.all.length !== 0) {
+
+        // search for instance in Habit.all
         const matchedHabit = Habit.all.find(h => h.id === habit['id']);
+
+        // select range in record select drop down, or if there is none selected, default to the last 7 days
         const filterRange = (document.querySelector("select#selectFilterHabits").value == null) ? "last7" :
             document.querySelector("select#selectFilterHabits").value;
-        HabitRecord.getFilteredRecords(filterRange, matchedHabit).then(json => renderFilteredHabits(json, matchedHabit));
+
+        // filter records based on select time range, then display them
+        HabitRecord.getFilteredRecords(filterRange, matchedHabit).then(json => renderFilteredRecords(json, matchedHabit));
     }
 }
 
-function renderFilteredHabits(json, habit) {
+/* display the records based on the selected range */
+function renderFilteredRecords(json, habit) {
 
     /* if table summary has not been rendered yet avoid throwing an error */
     if (document.getElementById("allHabitRow" + habit.id) !== null) {
+
+        // reset the records cell and render each record as a form of a box
         const recordsTD = document.getElementById("recordsTD" + habit.id);
         recordsTD.innerHTML = "";
         if (json['status'] && json['records'] != undefined) {
@@ -81,19 +98,19 @@ function renderFilteredHabits(json, habit) {
                 box.style.backgroundColor = habit.color;
                 recordsTD.append(box);
             })
+
+            // display the total number of records related to query
             document.getElementById("recordsTotalTD" + habit.id).innerText = json['records'].length;
-            document.getElementById("allHabitRow" + habit.id).appendChild(recordsTD);
         }
-    } else {
-        console.log("Habit table summary has not been rendered");
     }
 
 }
 
+/* renders the header select element and event listener for the habit summary */
 function renderHabitsSummarySelect(user) {
-    const allHabitsFilterDiv = document.createElement("div");
+    const allHabitsFilterDiv = document.createElement("allHabitsFilterDiv");
 
-        const logSummaryHeading = document.createElement("h2");
+        const logSummaryHeading = document.createElement("h3");
         logSummaryHeading.innerText = "Habit History";
 
         const allHabitsFilterSelect = document.createElement("select");
@@ -108,27 +125,31 @@ function renderHabitsSummarySelect(user) {
         <option name="lastYear" value="lastYear">Last Year
         `
 
+        // Update the records view based on the selected range
         allHabitsFilterSelect.addEventListener("click", e => {
                 filterHabitRecords(e, user);
         })
         allHabitsFilterDiv.append(logSummaryHeading, allHabitsFilterSelect);
+
     return allHabitsFilterDiv;
 }
 
+/* render the entire summary overview for all the habits */
 function renderHabitSummary(user) {
     const allHabitsDivElement = document.getElementById("allHabits");
     allHabitsDivElement.innerHTML = "";
 
-    let allHabitsFilterDiv = document.createElement("div");
-    if (Habit.all.length !== 0)
-        allHabitsFilterDiv = renderHabitsSummarySelect(user);
+    // display the table if Habit.all is not empty, otherwise don't show
+    if (Habit.all.length !== 0) {
+        const allHabitsFilterDiv = renderHabitsSummarySelect(user);
 
-    allHabitsDivElement.appendChild(allHabitsFilterDiv);
+        allHabitsDivElement.appendChild(allHabitsFilterDiv);
 
-    const allHabitNamesTableElement = document.createElement("table");
-    allHabitNamesTableElement.setAttribute("id", "allHabitsTable");
+        const allHabitNamesTableElement = document.createElement("table");
+        allHabitNamesTableElement.setAttribute("id", "allHabitsTable");
 
-    allHabitsDivElement.appendChild(allHabitNamesTableElement);
+        allHabitsDivElement.appendChild(allHabitNamesTableElement);
 
-    handleHabitSummary(user);
+        handleHabitSummary(user);
+    }
 }
