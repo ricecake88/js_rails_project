@@ -312,6 +312,7 @@ class User {
            this._loggedIn = true;
            this._id = json.id;
            clearError();
+           document.getElementById("message").innerHTML ="";
         }
     }
 
