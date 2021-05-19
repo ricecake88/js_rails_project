@@ -39,12 +39,11 @@ and add the following:
 
 ## Built With
 
-* Learn Online IDE
-* [Sinatra Gem](https://rubygems.org/gems/sinatra-activerecord/versions/2.0.9)
+* VS Code
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/ricecake88/sinatra_project. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/ricecake88/js_rails_project. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
 
 ## Authors
 
