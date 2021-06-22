@@ -12,5 +12,5 @@ Rails.application.routes.draw do
   #get '/habits', to: 'habits#index'
   post 'auth_user' => 'authentication#authenticate_user'
   #delete '/habit/delete/:id', to: 'habits#delete'
-  get '/*path' to "index";
+  get '/*path' to "main#index"
 end
