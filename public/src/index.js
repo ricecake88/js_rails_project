@@ -1,4 +1,6 @@
-const BACKEND_URL = 'http://localhost:3000';
+const DEV_URL = 'http://localhost:3000';
+const PROD_URL = 'https://habit-monitor-app.herokuapp.com/api/v1';
+const BACKEND_URL= process.env.NODE_ENV === 'development' ? DEV_URL : PROD_URL;
 
 function clearError() {
     document.getElementById("error").innerText = "";
