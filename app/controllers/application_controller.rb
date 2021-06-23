@@ -12,15 +12,21 @@ class ApplicationController < ActionController::API
 
     protected
     #def authenticate_request!
-    def authenticate_request!
-        unless user_id_in_token?
-            render json: { status: false, errors: ['Not! Authenticated'] }, status: :unauthorized
-            return
-        end
-        @current_user = User.find(auth_token[:user_id])
-        rescue JWT::VerificationError, JWT::DecodeError
-        render json: {status: false, errors: ['Not Authenticated'] }, status: :unauthorized
+    def authenticate_request
+      @http_token ||= if request.headers['Authorization'].present?
+        request.headers['Authorization'].split(' ').last
+      end
+      render json: { status: false, errors: request.headers['Authorization']}
     end
+    #def authenticate_request
+    #    unless user_id_in_token?
+    #        render json: { status: false, errors: ['Not! Authenticated'] }, status: :unauthorized
+    #        return
+    #    end
+    #    @current_user = User.find(auth_token[:user_id])
+    #    rescue JWT::VerificationError, JWT::DecodeError
+    #    render json: {status: false, errors: ['Not Authenticated'] }, status: :unauthorized
+    #end
 
     private
     def http_token
