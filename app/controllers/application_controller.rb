@@ -12,7 +12,7 @@ class ApplicationController < ActionController::API
 
     protected
     #def authenticate_request!
-    def authenticate_request
+    def authenticate_request!
         unless user_id_in_token?
             render json: { status: false, errors: ['Not! Authenticated'] }, status: :unauthorized
             return
@@ -34,7 +34,6 @@ class ApplicationController < ActionController::API
     end
 
     def user_id_in_token?
-      #http_token && auth_token && auth_token[:user_id].to_i
       http_token && auth_token
     end
 
