@@ -14,7 +14,7 @@ class ApplicationController < ActionController::API
     #def authenticate_request!
     def authenticate_request
       @auth_token ||= JsonWebToken.decode(http_token) 
-      render json: { status: false, errors: @auth_token }, status: :unauthorized
+      render json: { status: false, errors: @auth_token, http_token: http_token }, status: :unauthorized
     end
     #def authenticate_request
     #    unless user_id_in_token?
