@@ -1,5 +1,5 @@
-//const BACKEND_URL= 'https://habit-monitor-app.herokuapp.com';
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL= 'https://habit-monitor-app.herokuapp.com';
+//const BACKEND_URL = 'http://localhost:3000';
 
 function clearError() {
     document.getElementById("error").innerText = "";
