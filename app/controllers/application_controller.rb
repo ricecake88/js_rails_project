@@ -13,10 +13,8 @@ class ApplicationController < ActionController::API
     protected
     #def authenticate_request!
     def authenticate_request
-      @http_token ||= if request.headers['Authorization'].present?
-        request.headers['Authorization'].split(' ').last
-      end      
-      render json: { status: false, errors: @http_token }, status: :unauthorized
+      @auth_token ||= JsonWebToken.decode(http_token) 
+      render json: { status: false, errors: @auth_token }, status: :unauthorized
     end
     #def authenticate_request
     #    unless user_id_in_token?
