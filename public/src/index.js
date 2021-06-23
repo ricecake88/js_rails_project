@@ -59,6 +59,9 @@ function monitorUserArea(user) {
                                 Habit.handleHabits(user);
                                 renderHabitSummary(user);
                             })
+                            .catch(err =>
+                                console.log(err)
+                            )
                     } else {
                         displayError(json['errors']);
                     }
