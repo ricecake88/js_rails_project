@@ -19,6 +19,8 @@ function displayError(errors) {
 
 /* wrap fetchJSON around fetch to simplify fetch*/
 function fetchJSON(action_path, configObject) {
+    console.log(action_path);
+    console.log(configObject);
     return fetch(action_path, configObject)
     .then(response => response.json())
     .then(json => json)
