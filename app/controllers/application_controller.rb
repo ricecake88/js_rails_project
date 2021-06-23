@@ -16,7 +16,7 @@ class ApplicationController < ActionController::API
       @http_token ||= if request.headers['Authorization'].present?
         request.headers['Authorization'].split(' ').last
       end      
-      render json: { status: false, errors: @http_token }, status: unauthorized
+      render json: { status: false, errors: @http_token }, status: :unauthorized
     end
     #def authenticate_request
     #    unless user_id_in_token?
