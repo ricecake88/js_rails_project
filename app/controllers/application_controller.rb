@@ -14,7 +14,7 @@ class ApplicationController < ActionController::API
     #def authenticate_request!
     def authenticate_request
         unless user_id_in_token?
-            render json: { status: false, errors: ['Not Authenticated'] }, status: :unauthorized
+            render json: { status: false, errors: ['Not BLAH! Authenticated'] }, status: :unauthorized
             return
         end
         @current_user = User.find(auth_token[:user_id])
