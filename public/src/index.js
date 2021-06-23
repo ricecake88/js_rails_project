@@ -19,8 +19,6 @@ function displayError(errors) {
 
 /* wrap fetchJSON around fetch to simplify fetch*/
 function fetchJSON(action_path, configObject) {
-    console.log(action_path);
-    console.log(configObject);
     return fetch(action_path, configObject)
     .then(response => response.json())
     .then(json => json)
@@ -49,8 +47,6 @@ function monitorUserArea(user) {
 
                     // once authorized create GET config with the auth_token
                     // and set up user fields
-                    console.log(json);
-                    debugger
                     if (json['status'] === "authorized" ) {
                          fetchJSON(`${BACKEND_URL}/habits`, user.createAuthConfig(json['auth_token']))
                             .then(json => {
