@@ -1,5 +1,5 @@
-const BACKEND_URL= 'https://habit-monitor-app.herokuapp.com';
-//const BACKEND_URL = 'http://localhost:3000';
+//const BACKEND_URL= 'https://habit-monitor-app.herokuapp.com';
+const BACKEND_URL = 'http://localhost:3000';
 
 function clearError() {
     document.getElementById("error").innerText = "";
@@ -47,6 +47,8 @@ function monitorUserArea(user) {
 
                     // once authorized create GET config with the auth_token
                     // and set up user fields
+                    console.log(json);
+                    debugger
                     if (json['status'] === "authorized" ) {
                          fetchJSON(`${BACKEND_URL}/habits`, user.createAuthConfig(json['auth_token']))
                             .then(json => {
