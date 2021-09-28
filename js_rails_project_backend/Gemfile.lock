@@ -77,14 +77,14 @@ GEM
     method_source (1.0.0)
     mimemagic (0.3.5)
     mini_mime (1.0.2)
-    mini_portile2 (2.5.0)
+    mini_portile2 (2.6.1)
     minitest (5.14.4)
     msgpack (1.4.2)
     nio4r (2.5.7)
-    nokogiri (1.11.1)
-      mini_portile2 (~> 2.5.0)
+    nokogiri (1.12.5)
+      mini_portile2 (~> 2.6.1)
       racc (~> 1.4)
-    nokogiri (1.11.1-x64-mingw32)
+    nokogiri (1.12.5-x64-mingw32)
       racc (~> 1.4)
     orm_adapter (0.5.0)
     pg (1.2.3)
@@ -142,7 +142,6 @@ GEM
       tzinfo (>= 1.0.0)
     warden (1.2.9)
       rack (>= 2.0.9)
-    wdm (0.1.1)
     websocket-driver (0.7.3)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
@@ -165,7 +164,6 @@ DEPENDENCIES
   rack-cors
   rails (~> 5.2.4, >= 5.2.4.2)
   tzinfo-data
-  wdm (>= 0.1.0)
 
 RUBY VERSION
    ruby 2.6.6p146
