@@ -18,6 +18,7 @@ class AuthenticationController < ApplicationController
       return nil unless user and user.id
       {
         auth_token: JsonWebToken.encode({user_id: user.id}),
+        time: Time.now + 24.hours.to_i,
         user: {id: user.id, email: user.email},
         status: :authorized
        }
