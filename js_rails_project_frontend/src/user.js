@@ -52,6 +52,9 @@ class User {
         return this._habits;
     }
 
+    set habits(habits) {
+        this._habits = habits;
+    }
 
     static renderLogin() {
         const userAreaElement = document.getElementById("user");

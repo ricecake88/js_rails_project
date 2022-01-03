@@ -451,12 +451,15 @@ class Habit {
             // delete habit from all instances of Habit
             const habit_removed = Habit.all.splice(Habit.all.indexOf(this), 1);
 
+            this._user.habits = this._user.habits.filter(habit => {
+                return habit.id === habit_removed._id })
+
             // delete all records associated with instance of deleted habit
             HabitRecord.all.filter(record => {
                 return record.habit === habit_removed})
 
             // if no habits
-            if (Habit.all.length === 0) document.getElementById("headRow").remove();
+            if (this._user.habits.length === 0) document.getElementById("headRow").remove();
 
             // render update summary of habits
             renderHabitSummary(this._user);
