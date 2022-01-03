@@ -1,5 +1,7 @@
 const BACKEND_URL = 'http://localhost:3000';
 
+this.currentUser = null;
+
 function clearError() {
     document.getElementById("error").innerText = "";
 }
@@ -14,6 +16,12 @@ function displayError(errors) {
     } else {
         document.getElementById("error").innerText = errors
     }
+}
+
+function isAuthenticated() {
+    if (window.localStorage.user) {
+        return true;
+    } else return false;
 }
 
 /* wrap fetchJSON around fetch to simplify fetch*/
@@ -51,6 +59,7 @@ function monitorUserArea(user) {
                             .then(json => {
                                 user.handleLogin(json);
                                 Habit.renderAddHabitForm();
+                                user.renderLogout();
                                 Habit.handleHabits(user);
                                 renderHabitSummary(user);
                             })
@@ -74,10 +83,40 @@ function monitorUserArea(user) {
 
 }
 
+function retrieveInfo(user) {
+
+    // user is already logged in and authorized
+    // this is retrieving interface after a refresh
+    fetchJSON(`${BACKEND_URL}/habits`, user.createAuthConfig(user.authToken))
+        .then(json => {
+            user.handleLogin(json);
+            Habit.renderAddHabitForm();
+            user.renderLogout();
+            Habit.handleHabits(user);
+            renderHabitSummary(user);
+            })
+}
+
 document.addEventListener('DOMContentLoaded', (event) => {
     event.preventDefault();
-    let user = new User();
-    User.renderLogin();
+    let user;
+    if (isAuthenticated() === false) {
+        user = new User();
+        User.renderLogin();
+    } else {
+       // retrieve user
+       if (this.currentUser === null) {
+         let userObj = JSON.parse(window.localStorage.user);
+         user = new User(userObj["id"],
+            userObj["firstName"],
+            userObj["email"], "",
+            userObj["authToken"],
+            userObj["login_state"],
+            userObj["habits"])
+         retrieveInfo(user);
+
+       }
+    }
     monitorUserArea(user);
 })
 

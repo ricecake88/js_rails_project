@@ -1,13 +1,13 @@
 
 class User {
 
-    constructor(firstName="", email="", password="", authToken="", login_state=false) {
+    constructor(id=-1, firstName="", email="", password="", authToken="", login_state=false, habits=[]) {
         this._email = email;
         this._firstName = firstName;
         this._loggedIn = login_state;
         this._authToken = authToken;
-        this._habits = [];
-        this._id = -1;
+        this._habits = habits;
+        this._id = id;
     }
 
     /* getter for login_state */
@@ -252,6 +252,7 @@ class User {
             document.getElementById('message').innerHTML = "Account Created. Please Log In."
             document.getElementById('user').innerHTML = "";
             clearError();
+            window.localStorage.clear()
             User.renderLogin();
             this._first_name = json.first_name;
             this._last_name = json.last_name;
@@ -259,6 +260,31 @@ class User {
             this._loggedIn = true;
             this._id = json.id;
         }
+    }
+
+    renderLogout() {
+        const divs = document.getElementsByTagName("div")
+        const welcomeE = document.getElementById('welcomeHeader');
+
+        const userArea = document.getElementById("user");
+        const logoutFormElement = document.createElement("form")
+        logoutFormElement.setAttribute("name", "logoutForm");
+
+        const logoutLink = document.createElement("button");
+        logoutLink.setAttribute("name", "logoutLink");
+        logoutLink.setAttribute("id", "logoutLink");
+        logoutLink.textContent = "Logout";
+
+        logoutLink.addEventListener('click', e => {
+            e.preventDefault();
+            this.handleLogout(divs, welcomeE);
+        })
+
+
+        logoutFormElement.append(logoutLink)
+        userArea.append(logoutFormElement);
+
+
     }
 
     createAuthConfig(authToken) {
@@ -274,9 +300,9 @@ class User {
     }
 
 
-    createLoginConfig() {
+    createLoginConfig(user={}) {
         let email = document.querySelector("#loginSubmitForm input#email").value;
-        let password = document.querySelector("#loginSubmitForm input#password").value
+        let password = document.querySelector("#loginSubmitForm input#password").value;
 
 
         let configObject = {
@@ -313,8 +339,38 @@ class User {
            this._id = json.id;
            clearError();
            document.getElementById("message").innerHTML ="";
+           window.localStorage.setItem('user', JSON.stringify(
+               {
+                'authToken': this._authToken,
+                'firstname': json.first_name,
+                'email': json.email,
+                'password': json.password,
+                'loggedIn': true,
+                'id': json.id,
+                'habits': json.habits
+               }
+           ))
+           window.currentUser = this;
+
         }
     }
 
+    handleLogout(divs, welcomeE) {
+        for (let div of divs) {
+            if (div.children.length !== 0 && div.children[0].className == 'habit-table-container') {
+                div.children[0].children[0].innerText = '';
+            }
+            else if (div.getAttribute("id") == "habits" ||
+                div.getAttribute("class") == "habit-table-container") {
+                    continue;
+            } else {
+                div.innerHTML = '';
+            }
+        }
+        welcomeE.innerHTML = '';
+        window.localStorage.clear();
+        window.currentUser = null;
+        User.renderLogin();
+    }
 
 }
