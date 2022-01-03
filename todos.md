@@ -20,7 +20,8 @@ Distant Stretch goals
 
 Bug Fixes
 ```
-[] Modify Habit.all to be based on user habits, not all habits. This causes an issue when deleting a habit. Upon refreshing it displays correctly.
+[x] Modify Habit.all to be based on user habits, not all habits. This causes an issue when deleting a habit. Upon refreshing it displays correctly.
+[] Render habit summary section based on user habits, not all habits.
 ```
 
 Testing
