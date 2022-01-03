@@ -1,5 +1,4 @@
 Small Stretch Goals
-
 ```
   [] implement a method to make sure the record for "yesterday" is marked off, in order to figure out streak number
   [] integrate streak level (easy, medium, hard) to habit
@@ -10,10 +9,21 @@ Small Stretch Goals
 
 Medium Stretch Goals
 ```
-[] Deploy on the web
+[x] Deploy on the web
+[] Invalidate token after a certain time
 ```
 
 Distant Stretch goals
 ```
 [] intergrate productivity timer/pomodoro timer where one can set a timer to a habit (if they wish) as an option
+```
+
+Bug Fixes
+```
+[] Modify Habit.all to be based on user habits, not all habits. This causes an issue when deleting a habit. Upon refreshing it displays correctly.
+```
+
+Testing
+```
+[] Add testing framework
 ```
