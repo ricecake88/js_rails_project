@@ -13,6 +13,7 @@ class Habit {
         this._streak_level = streak_level;
         this._color = color;
         this._user = user;
+        this._habit_records = [];
         Habit.all.push(this);
     }
 
@@ -127,31 +128,10 @@ class Habit {
 
         const habitColorLabel = document.createElement("label");
         habitColorLabel.innerText = "Color: "
-        const habitColorSelect = document.createElement("select");
-        habitColorSelect.id = "habitColor";
-        const colors = ["blue", "black", "green", "lightblue", "orange", "pink", "purple", "red", "yellow", "violet"]
-        colors.forEach(color => {
-            const option = document.createElement("option");
-            option.name = color
-            option.value = color
-            option.innerText = color
-            if (color === "pink") {
-                option.setAttribute("selected", "");
-            }
-            habitColorSelect.appendChild(option);
-        })
 
-        const colorChoice = document.createElement("span");
-        colorChoice.id = "colorChoice";
-        colorChoice.setAttribute("class", "box");
-        colorChoice.style.backgroundColor = "pink";
-        colorChoice.style.marginRight = "10px";
-
-        /* change color box to match selected color */
-        habitColorSelect.addEventListener("change", function(event) {
-            event.preventDefault();
-            document.getElementById("colorChoice").style.backgroundColor = document.getElementById("habitColor").value;
-        })
+        const habitColorInput = document.createElement("input");
+        habitColorInput.id = "habitColor";
+        habitColorInput.setAttribute("type", "color");
 
         const submitHabit = document.createElement("button");
         submitHabit.type = "submit";
@@ -163,7 +143,7 @@ class Habit {
         habitForm.append(habitNameLabel, habitNameInput);
         habitForm.append(frequencyLabel, frequencySelect);
         habitForm.append(streakLevelLabel, streakLevelSelect);
-        habitForm.append(habitColorLabel, habitColorSelect, colorChoice);
+        habitForm.append(habitColorLabel, habitColorInput);
         habitForm.appendChild(submitHabit);
         userAreaElement.append(habitForm);
     } // end renderAddHabitForm
@@ -185,7 +165,7 @@ class Habit {
                 'streak_level': document.querySelector("#habitForm select#streakLevel").value,
                 'num_for_streak': 7, /* STRETCH GOAL: DONT'T SET THIS WHEN PASSING THROUGH, DON'T PASS THROUGH
                             - TO DEAL WITH STREAK LEVELS */
-                'color': document.querySelector("#habitForm select#habitColor").value,
+                'color': document.querySelector("#habitForm input#habitColor").value,
                 'user_id': user.id
             })
         };
@@ -249,6 +229,7 @@ class Habit {
 
     /* create config to update a habit */
     createCfgPatch(updatedHabit) {
+        console.log(updatedHabit);
         return {
             method: 'PATCH',
             headers: {
@@ -283,6 +264,7 @@ class Habit {
     /* render the updated field or display an error if there is an error in modifying habit
         and also updates the habit instance */
     renderUpdatedHabit(habitCell, json) {
+        console.log(json);
         if (json['status']) {
             let originalSpanElement = null;
 
@@ -304,7 +286,7 @@ class Habit {
                 habitCell.innerHTML = "";
                 habitCell.appendChild(originalSpanElement);
 
-            } else if (habitCell.firstChild.id.includes("editColorSelect")) {
+            } else if (habitCell.firstChild.id.includes("editColorInput")) {
 
                 // update instance with color selected
                 this._color = json['habit']['color'];
@@ -451,11 +433,12 @@ class Habit {
             // delete habit from all instances of Habit
             const habit_removed = Habit.all.splice(Habit.all.indexOf(this), 1);
 
+            // delete habit from user's habits
             this._user.habits = this._user.habits.filter(habit => {
                 return habit.id === habit_removed._id })
 
             // delete all records associated with instance of deleted habit
-            HabitRecord.all.filter(record => {
+            const habitRecords = HabitRecord.all.filter(record => {
                 return record.habit === habit_removed})
 
             // if no habits
@@ -472,41 +455,20 @@ class Habit {
     /* function that renders the select menu for color of habit and shows
     renders all color boxes that show the color */
     renderColorSelect(colorChoiceTD) {
-        // -- Color Box Select Field -- //
-        const colorSelect = document.createElement("select");
-        colorSelect.id = "editColorSelect" + this._id;
-        const colors = ["blue", "black", "green", "lightblue", "orange", "pink", "purple", "red", "yellow", "violet"]
-        colors.forEach(color => {
-            const option = document.createElement("option");
-            option.name = color
-            option.value = color
-            option.innerText = color
-            if (color === this._color) {
-                option.setAttribute("selected", "");
-            }
-            colorSelect.appendChild(option);
-        })
+        const colorInput = document.createElement("input");
+        colorInput.id = "editColorInput" + this._id;
+        colorInput.setAttribute("type", "color");
+        colorInput.setAttribute("value", this._color);
 
-        // colorBox to show what the color is from the select menu
-        const colorBox = document.createElement("span");
-        colorBox.setAttribute("class", "box");
-        colorBox.id = "editColorBox" + this._id;
-        colorBox.style.backgroundColor = this._color;
+        colorChoiceTD.append(colorInput);
 
-        colorChoiceTD.append(colorSelect, colorBox);
-
-        // when a color has been selected from the menu,
-        // update color of habit and render all related color rendering
-        colorSelect.addEventListener("click", (e) => {
+        colorInput.addEventListener("input", (e) => {
             e.preventDefault();
-            e.target.focus();
-            colorBox.style.backgroundColor = colorSelect.value;
-            e.target.onblur = (e) => {
-                const copyOfHabit = Object.assign({}, this);
-                copyOfHabit._color = colorSelect.value;
-                this.handleUpdatedHabit(colorChoiceTD, copyOfHabit);
-            }
-        });
+            console.log(colorInput.value);
+            const copyOfHabit = Object.assign({}, this);
+            copyOfHabit._color = colorInput.value;
+            this.handleUpdatedHabit(colorChoiceTD, copyOfHabit);
+        })
 
     }
 
