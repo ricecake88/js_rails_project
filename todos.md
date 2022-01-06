@@ -23,6 +23,7 @@ Bug Fixes
 [x] Modify Habit.all to be based on user habits, not all habits. This causes an issue when deleting a habit. Upon refreshing it displays correctly.
 [] Render habit summary section based on user habits, not all habits.
 [] Fix HabitRecords.all so they only belong to a specific habit. Inefficient, time intensive the more records there are.
+[] Associate Habit Records with a Habit
 ```
 
 Testing
