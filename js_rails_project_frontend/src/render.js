@@ -7,7 +7,7 @@ function renderHabitControlHead() {
     const headerNames = {
         "deleteHeadCell": "Delete a Habit",
         "nameHeadCell": "Habit",
-        "colorHeadCell": "Represented Color",
+        "colorHeadCell": "Change Color",
         "goalHeadcell": "Goal",
         "last7HeadCell": "Last 7 Days",
         "recordHeadCell": "Log / Remove"
@@ -55,7 +55,7 @@ function renderHabitSummaryRow(user, json) {
             habitNameTD.appendChild(habitSpanElement);
             habitRowElement.append(habitNameTD, recordsTotalTD, recordsTD);
             habitTableElement.append(habitRowElement);
-            user.habits.push(habit);
+           // user.habits.push(habit);
 
             // display records related to habit
             handleFilteredSummaryRecords(habit);

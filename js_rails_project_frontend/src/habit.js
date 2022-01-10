@@ -33,6 +33,14 @@ class Habit {
         return this._user;
     }
 
+    set habit_records(habit_records) {
+        this._habit_records = habit_records;
+    }
+
+    get habit_records() {
+        return this._habit_records;
+    }
+
     /* called from main page to get all habits
     to display */
     static handleHabits(user) {
@@ -52,8 +60,13 @@ class Habit {
                 renderHabitControlHead();
                 json['habits'].forEach(habit => {
                     const newHabit = new Habit(habit.id, habit.name, habit.frequency_mode, habit.num_for_streak, habit.streak_counter,
-                        habit.streak_level, habit.color, user);
+                            habit.streak_level, habit.color, user);
+
+                    // render habit
                     newHabit.renderHabit("get");
+
+                    // add habit to list of user's habit
+                    newHabit.user.habits.push(newHabit);
 
                     // initialize and fill up HabitRecord with records related to habit
                     HabitRecord.handleAllRecords(newHabit);
@@ -64,6 +77,7 @@ class Habit {
                     // render the record boxes to display last 7 days
                     newHabit.handle7DayRecords();
                 })
+
             }
         } else {
             displayError(json['errors']);
@@ -193,7 +207,7 @@ class Habit {
             document.querySelector("#habitForm input#habitName").value = "";
 
             // if no habits
-            if (this.all.length === 0) {
+            if (user.habits.length === 0) {
                 renderHabitControlHead();
             }
 
@@ -207,6 +221,8 @@ class Habit {
                 json['habit']['color'],
                 user);
 
+            createdHabit.user.habits.push(this);
+
             // render habit
             createdHabit.renderHabit("add");
         } else {
@@ -216,7 +232,10 @@ class Habit {
 
     /* retrieve 7 day records and then render the records as boxes */
     handle7DayRecords() {
-        HabitRecord.getFilteredRecords("last7", this).then(json => HabitRecord.render7DayProgress(json, this))
+        HabitRecord.getFilteredRecords("last7", this).then(json => {
+                HabitRecord.initializeRecords(json, this);
+                HabitRecord.render7DayProgress(json, this);
+            })
     }
 
     /* retrieve records based on select range and then render the selection of records */
@@ -229,7 +248,6 @@ class Habit {
 
     /* create config to update a habit */
     createCfgPatch(updatedHabit) {
-        console.log(updatedHabit);
         return {
             method: 'PATCH',
             headers: {
@@ -264,7 +282,6 @@ class Habit {
     /* render the updated field or display an error if there is an error in modifying habit
         and also updates the habit instance */
     renderUpdatedHabit(habitCell, json) {
-        console.log(json);
         if (json['status']) {
             let originalSpanElement = null;
 
@@ -398,7 +415,7 @@ class Habit {
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                "Authorization": "Bearer " + this._user._authToken
+                "Authorization": "Bearer " + this._user.authToken
             },
             body: JSON.stringify({
                 'id': this._id,
@@ -435,11 +452,15 @@ class Habit {
 
             // delete habit from user's habits
             this._user.habits = this._user.habits.filter(habit => {
-                return habit.id === habit_removed._id })
+                return habit.id !== habit_removed[0]._id })
 
             // delete all records associated with instance of deleted habit
             const habitRecords = HabitRecord.all.filter(record => {
-                return record.habit === habit_removed})
+                return record.habit.id !== habit_removed[0]._id})
+
+            this.habit_records = this.habit_records.filter(record => {
+                return record.habit.id !== habit_removed[0]._id
+            })
 
             // if no habits
             if (this._user.habits.length === 0) document.getElementById("headRow").remove();
@@ -464,7 +485,6 @@ class Habit {
 
         colorInput.addEventListener("input", (e) => {
             e.preventDefault();
-            console.log(colorInput.value);
             const copyOfHabit = Object.assign({}, this);
             copyOfHabit._color = colorInput.value;
             this.handleUpdatedHabit(colorChoiceTD, copyOfHabit);
@@ -476,6 +496,8 @@ class Habit {
         which includes all listeners for elements in the two rows related
         to the habit */
     renderHabit(action) {
+
+
         const habitTable = document.querySelector("table#habitTable");
 
         // ---- Row where main details for habits are ---//

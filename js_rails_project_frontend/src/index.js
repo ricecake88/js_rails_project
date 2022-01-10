@@ -101,20 +101,19 @@ document.addEventListener('DOMContentLoaded', (event) => {
     event.preventDefault();
     let user;
     if (isAuthenticated() === false) {
+        // login new user
         user = new User();
         User.renderLogin();
     } else {
-       // retrieve user
+       // retrieve user if user is already authenticated
        if (this.currentUser === null) {
          let userObj = JSON.parse(window.localStorage.user);
          user = new User(userObj["id"],
             userObj["firstName"],
-            userObj["email"], "",
+            userObj["email"],
             userObj["authToken"],
-            userObj["login_state"],
-            userObj["habits"])
+            userObj["login_state"]);
          retrieveInfo(user);
-
        }
     }
     monitorUserArea(user);

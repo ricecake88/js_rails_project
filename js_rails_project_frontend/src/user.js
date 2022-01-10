@@ -1,13 +1,13 @@
 
 class User {
 
-    constructor(id=-1, firstName="", email="", password="", authToken="", login_state=false, habits=[]) {
+    constructor(id=-1, firstName="", email="", authToken="", login_state=false) {
+        this._id = id;
         this._email = email;
         this._firstName = firstName;
         this._loggedIn = login_state;
         this._authToken = authToken;
-        this._habits = habits;
-        this._id = id;
+        this._habits = [];
     }
 
     /* getter for login_state */
@@ -283,7 +283,6 @@ class User {
             this.handleLogout(divs, welcomeE);
         })
 
-
         logoutFormElement.append(logoutLink)
         userArea.append(logoutFormElement);
 
@@ -347,7 +346,6 @@ class User {
                 'authToken': this._authToken,
                 'firstname': json.first_name,
                 'email': json.email,
-                'password': json.password,
                 'loggedIn': true,
                 'id': json.id,
                 'habits': json.habits
@@ -371,6 +369,7 @@ class User {
             }
         }
         welcomeE.innerHTML = '';
+        document.getElementById('message').innerText = 'Logged Out.';
         window.localStorage.clear();
         window.currentUser = null;
         User.renderLogin();

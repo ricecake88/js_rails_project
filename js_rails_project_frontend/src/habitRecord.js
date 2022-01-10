@@ -151,6 +151,7 @@ class HabitRecord {
          })
     }
 
+
     /* display a record for the cell that shows records from
        the last 7 days */
     static render7DayProgress(json, habit) {
@@ -160,7 +161,9 @@ class HabitRecord {
             json['records'].forEach(rec => {
 
                 // retrieve related record instance
-                const record = HabitRecord.all.find(r => r.id === rec['id']);
+                // TO-DO: Update HabitRecord.all so that it associated with a habit, this will take too long
+
+                const record = habit.habit_records.find(r => r.id == rec['id']);
 
                 /* only render if record is found in Habit Record list*/
                 if (record !== undefined)
@@ -180,7 +183,9 @@ class HabitRecord {
     static initializeRecords(json, habit) {
         if (json['status'] && json['records'] !== undefined) {
             json['records'].forEach(record => {
-                new HabitRecord(record['id'], habit, record['time_of_record'])
+                const habitRecordInstance = new HabitRecord(record['id'], habit, record['time_of_record'])
+                habit.habit_records.push(habitRecordInstance);
+
             })
         }
     }
